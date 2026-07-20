@@ -1,9 +1,10 @@
 export const meta = {
   name: 'demand-discovery',
-  description: '每日需求发现：12 组信号源并行扫描 → 交叉分析 → 报告撰写',
-  whenToUse: '每日或每周执行一次，系统性发现可产品化的用户痛点和市场机会',
+  description: '每日需求发现：热点雷达 → 13 组信号源 + 动态热点组并行扫描 → 交叉分析 → 报告撰写',
+  whenToUse: '每日或每周执行一次，系统性发现可产品化的用户痛点和市场机会（必须传 args.date）',
   phases: [
-    { title: 'Signal Collection', detail: '12 search groups pipelined for rate-limit safety' },
+    { title: 'Hot Topic Radar', detail: 'Detect breaking events from last-72h media and derive dynamic search queries' },
+    { title: 'Signal Collection', detail: '13 static groups + dynamic hot-topic groups pipelined for rate-limit safety' },
     { title: 'Cross-Analysis', detail: 'Identify cross-validated patterns and score opportunities' },
     { title: 'Report Writing', detail: 'Write daily report and update opportunity tracker' },
   ],
@@ -69,7 +70,15 @@ const ANALYSIS_SCHEMA = {
 
 // ── Search Group Definitions ─────────────────────────────────────────────────
 
-const today = args && args.date ? args.date : '2026-06'
+// 日期必须显式传入且合法 — 静默回退到旧日期会让整次扫描搜错时间窗（2026-07-20 曾因此漏掉 WAIC）
+const rawDate = args && args.date ? String(args.date).replace(/[^0-9-]/g, '') : ''
+if (!/^\d{4}-\d{2}(-\d{2})?$/.test(rawDate)) {
+  throw new Error(
+    `demand-discovery requires a valid date arg, got: ${JSON.stringify(args && args.date)}. ` +
+      'Invoke as Workflow({ name: "demand-discovery", args: { date: "YYYY-MM-DD" } })'
+  )
+}
+const today = rawDate
 const year = today.slice(0, 4)
 const month = today.slice(0, 7)
 
@@ -278,15 +287,114 @@ Run these searches ONE AT A TIME:
 Extract: startup/product name, funding, market opportunity, whether unique to China or global.
 Focus on last 7-30 days. Include source URLs.`,
   },
+  {
+    key: 'conferences-launch-events',
+    label: '行业大会 + 重大发布会 (WAIC/IO/WWDC/云栖/智源)',
+    type: 'trend',
+    prompt: `Search for MAJOR AI CONFERENCE and PRODUCT LAUNCH EVENT signals — flagship industry events, not meetups.
+
+Run these searches ONE AT A TIME:
+1. AI conference major announcements ${month} ${year}
+2. 世界人工智能大会 WAIC ${year} 发布 OR 亮点 OR 重磅
+3. WAIC ${year} highlights announcements
+4. AI 大会 OR 发布会 新品 OR 重磅发布 ${month}
+5. Google I/O OR WWDC OR Microsoft Build OR AWS re:Invent OR 云栖大会 OR 智源大会 AI ${month} ${year}
+6. major AI product launch keynote ${month} ${year}
+
+These events cluster vendor roadmaps, new model/API capabilities, and ecosystem bets into a few days — a single conference can reset the competitive landscape.
+Extract: event name and dates, headline announcements (products/models/APIs/policies), vendor strategy shifts, scale metrics (attendance/exhibitors), and which announcements open or close product opportunities for indie builders.
+Prioritize events within the last 14 days, especially anything from THIS WEEK; also note upcoming flagship events in the next 30 days. Include source URLs.`,
+  },
 ]
+
+// ── Phase 0: Hot Topic Radar ─────────────────────────────────────────────────
+// 从最近 72h 的中英文媒体头条自动探测重大事件/热点，动态生成深挖查询——
+// 避免每逢 WAIC/发布会这类事件都要手动往查询列表里加关键词。
+
+const RADAR_SCHEMA = {
+  type: 'object',
+  properties: {
+    hot_topics: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          topic: { type: 'string' },
+          why_it_matters: { type: 'string' },
+          event_window: { type: 'string' },
+          queries: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['topic', 'why_it_matters', 'queries'],
+      },
+    },
+  },
+  required: ['hot_topics'],
+}
+
+phase('Hot Topic Radar')
+log('Detecting breaking AI events from last-72h media headlines...')
+
+const radar = await agent(
+  `You are a news radar for an AI demand-discovery system. Today is ${today}.
+
+Scan the LAST 72 HOURS of AI/tech media headlines to detect major events the daily static scan might miss — flagship conferences (e.g. WAIC, Google I/O, WWDC, 云栖大会), major model/product launches, regulation drops, viral incidents, big funding waves.
+
+Run these searches ONE AT A TIME:
+1. AI biggest news this week ${today}
+2. AI 本周 重大新闻 OR 重磅发布 ${month}
+3. 机器之心 OR 量子位 OR 36kr AI 头条 本周
+4. site:techcrunch.com AI ${month} ${year}
+5. Hacker News front page AI this week ${today}
+6. AI 大会 OR 发布会 OR 新规 本周 ${month}
+
+For each MAJOR topic detected (dominating multiple outlets, or a flagship event happening now / within the last week), return:
+- topic: short name (e.g. "WAIC 2026 世界人工智能大会")
+- why_it_matters: 1-2 sentences on why this could reshape product opportunities
+- event_window: when it happened/happens
+- queries: 3-5 specific search queries (mix Chinese/English as appropriate) a deep-dive researcher should run to extract product-opportunity signals from this topic
+
+Return 0-4 topics. Quality over quantity — only events big enough that missing them would embarrass a daily AI industry report. If nothing major happened, return an empty list.`,
+  {
+    label: '热点雷达',
+    phase: 'Hot Topic Radar',
+    schema: RADAR_SCHEMA,
+    model: 'sonnet',
+    effort: 'medium',
+  }
+)
+
+const hotTopics = (radar && radar.hot_topics ? radar.hot_topics : []).slice(0, 4)
+log(
+  hotTopics.length
+    ? `Detected ${hotTopics.length} hot topics: ${hotTopics.map((t) => t.topic).join('; ')}`
+    : 'No major breaking topics detected — static groups only'
+)
+
+const dynamicGroups = hotTopics.map((t, i) => ({
+  key: `hot-topic-${i + 1}`,
+  label: `热点深挖: ${t.topic}`,
+  type: 'trend',
+  prompt: `Deep-dive a HOT TOPIC auto-detected from the last 72h of media coverage.
+
+Topic: ${t.topic}
+Why it matters: ${t.why_it_matters}
+Event window: ${t.event_window || 'recent'}
+
+Run these searches ONE AT A TIME:
+${t.queries.map((q, j) => `${j + 1}. ${q}`).join('\n')}
+
+Extract signals relevant to PRODUCT OPPORTUNITIES for AI practitioners/indie builders: headline announcements (models/products/APIs/policies) with concrete numbers, vendor strategy shifts, which opportunities this opens or closes for independent builders, and any pain points or willingness-to-pay evidence surfacing in the coverage.
+Focus on the event window itself. Include source URLs.`,
+}))
 
 // ── Phase 1: Signal Collection ───────────────────────────────────────────────
 
 phase('Signal Collection')
-log(`Scanning ${SEARCH_GROUPS.length} signal source groups...`)
+const ALL_GROUPS = SEARCH_GROUPS.concat(dynamicGroups)
+log(`Scanning ${ALL_GROUPS.length} signal source groups (${SEARCH_GROUPS.length} static + ${dynamicGroups.length} dynamic)...`)
 
 const signals = await parallel(
-  SEARCH_GROUPS.map((g) => () =>
+  ALL_GROUPS.map((g) => () =>
     agent(
       `You are a demand discovery researcher. Today is ${today}. Year: ${year}. Month: ${month}.
 
@@ -311,7 +419,7 @@ IMPORTANT RULES:
 
 const validSignals = signals.filter(Boolean)
 const totalSignalCount = validSignals.reduce((sum, s) => sum + (s.signals ? s.signals.length : 0), 0)
-log(`Collected ${totalSignalCount} signals from ${validSignals.length}/${SEARCH_GROUPS.length} groups`)
+log(`Collected ${totalSignalCount} signals from ${validSignals.length}/${ALL_GROUPS.length} groups`)
 
 // ── Phase 2: Cross-Analysis ──────────────────────────────────────────────────
 
@@ -332,7 +440,7 @@ const signalSummary = validSignals
 
 const analysis = await agent(
   `You are a startup opportunity analyst. Analyze these signals from today's demand discovery scan (${today}).
-
+${hotTopics.length ? `\nBreaking events auto-detected this run (their deep-dive signals are included below — weigh them as fresh, high-salience context): ${hotTopics.map((t) => t.topic).join('; ')}\n` : ''}
 ## ALL SIGNALS COLLECTED TODAY
 
 ${signalSummary}

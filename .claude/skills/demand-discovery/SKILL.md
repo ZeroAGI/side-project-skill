@@ -64,6 +64,7 @@ user_invocable: true
 | **Hugging Face Models** | 近期热门/新发布模型 | 模型能力、下载量、应用场景 → 新模型 = 新能力 = 新产品可能 |
 | **Hugging Face Datasets** | 近期热门/新上传数据集 | 数据领域、下载量、标注类型 → 什么数据被关注 = 什么问题值得解决 |
 | **Luma 活动** | AI/Tech 领域线上线下活动 | 活动主题、参与人数、讨论热点 → 行业热点风向标 |
+| **行业大会 / 重大发布会** | WAIC、Google I/O、WWDC、Build、re:Invent、云栖大会、智源大会等旗舰活动（常驻通用查询；具体事件由热点雷达自动探测，无需手动加词） | 头条发布（新模型/API/产品/政策）、厂商战略转向、参会规模 → 几天内密集重置竞争格局，对独立开发者开启或关闭机会窗口 |
 | **智源社区 (hub.baai.ac.cn)** | AI 前沿论文、热门项目、风云榜 | 中文 AI 学术前沿动态，新论文/新项目 → 技术能力突破信号 |
 | **arXiv** | AI/ML 前沿论文（cs.AI, cs.CL, cs.CV, cs.LG） | 最前沿的技术突破 → 6-12 个月后可产品化的能力信号 |
 | **行业新闻** | 新法规、新政策、行业变革 | 合规刚需 = 强付费意愿 |
@@ -79,19 +80,15 @@ user_invocable: true
 
 **使用 Workflow 自动编排**（推荐）：
 
-调用 Workflow 工具执行信号扫描编排，自动控制并发避免 API 限流：
+调用 Workflow 工具执行信号扫描编排，自动控制并发避免 API 限流。**必须传入 date 参数**（当天日期，格式 `YYYY-MM-DD`）——日期缺失或非法时 workflow 会直接报错，避免静默按错误时间窗搜索（2026-07-20 曾因日期参数丢失回退到 6 月，整场 WAIC 漏测）：
 
 ```
-Workflow({ name: "demand-discovery" })
-```
-
-可传入日期参数（默认当月）：
-```
-Workflow({ name: "demand-discovery", args: { date: "2026-06-27" } })
+Workflow({ name: "demand-discovery", args: { date: "2026-07-20" } })
 ```
 
 Workflow 完成后会自动：
-1. 在 12 个信号源组中并行扫描（受控并发，不超过 RPM 限制）
+1. **热点雷达（Phase 0）**：先扫描最近 72h 中英文媒体头条（机器之心/量子位/36kr/TechCrunch/HN 等），自动探测重大事件（旗舰大会、重磅发布、新规、病毒式事件），动态生成 0-4 组深挖查询——**无需为 WAIC/发布会这类事件手动往本文件添加搜索关键词**，下方关键词列表只定义常驻信号渠道
+2. 在 13 个常驻信号源组 + 动态热点组中并行扫描（受控并发，不超过 RPM 限制）
 2. 交叉分析所有信号，识别多渠道验证的高价值模式
 3. 撰写完整报告并更新累积机会库
 
@@ -295,6 +292,14 @@ Luma 活动:
 - site:lu.ma AI event {current_month} {year}
 - site:lu.ma tech meetup AI {current_month} {year}
 - lu.ma popular AI events upcoming {year}
+
+行业大会 / 重大发布会:
+- AI conference major announcements {current_month} {year}
+- 世界人工智能大会 WAIC {year} 发布 OR 亮点 OR 重磅
+- WAIC {year} highlights announcements
+- AI 大会 OR 发布会 新品 OR 重磅发布 {current_month}
+- Google I/O OR WWDC OR Microsoft Build OR AWS re:Invent OR 云栖大会 OR 智源大会 AI {current_month} {year}
+- major AI product launch keynote {current_month} {year}
 
 智源社区:
 - site:hub.baai.ac.cn AI 热门论文 OR 热门项目 {current_month} {year}
