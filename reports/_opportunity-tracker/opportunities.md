@@ -1,25 +1,25 @@
 # 累积机会追踪
 
 > 每日需求发现报告中识别的机会汇总，按出现频次和综合得分排序。
-> 最后更新：2026-07-20（基于 2026-07-20 每日报告数据）
+> 最后更新：2026-07-21（基于 2026-07-21 每日报告数据）
 
 | 首次发现 | 机会名称 | 综合得分 | 出现次数 | 状态 |
 |---------|---------|---------|---------|------|
-| 2026-06-26 | AI 跨工具记忆层 / 持久记忆 — Agent Memory & Context Persistence | 4.8 | 23 | ⭐ 值得深入研究 — **连续22+日最强主题之一（本期让位Cost Guardian居第二）**，本期供给侧品类化：Goldfish PH 997票 + HN ctx（45,734→917 token）+ codebase-memory-mcp 1.4k星（99%省token）+ SO for Agents 发布（Ephemeral Intelligence Gap）+ Reddit 34%记忆丢失/91小时年重建 + Stanford #1投诉 + 中国「上下文失忆」横评 + 本期：Ask HN 15-25%交互时间重建上下文/CLAUDE.md ~200行到顶 + 第6步失忆（有效窗口仅60-70%）+ arXiv 2606.14502「Workspace+Skill」范式 + Mem0/Zep/Bedrock AgentCore涌入——竞品加速但**跨工具赢家仍空缺** + WAIC补扫：36kr点名「模型懂世界、不懂组织」为企业Agent核心瓶颈/「过期上下文比没有更糟」/特赞GEA含上下文层已服务180+企业——企业侧独立确认 |
-| 2026-06-26 | AI 合规工具 — EU AI Act + 中国AI拟人化新规 | 4.7 | 22 | ⭐ 值得深入研究 — 🔴 **EU AI生成内容透明度提前至2026-12-02（宽限期6→3个月）**+ 高风险推迟2027-12/2028-08 + 美国AI EO（6/2）「trusted partners」层 + Colorado废止重立SB 26-189 + CT/VT/LA州级拼图 + 中国小红书7月新规 + WAIC补扫（扩容）：网信办首批7款手机端侧AI大模型备案 + 智能终端国标L3级测试首批放行（STEPX Neo通过）——中国合规体系从生成式内容延伸到端侧Agent/智能终端 |
-| 2026-06-26 | AI Agent Cost Guardian — 预算护栏与失控预防 | 4.8 | 22 | ⭐ 值得深入研究 — ⬆️ **4.5→4.8，2026-07-20登顶最佳机会（7+渠道全场最强）**：IH $100M未归因 + $34K八天失控账单 + Zapier $400-1200意外账单 + 56% CEO零ROI/仅29%能测 + 52% license闲置 + Tokens Forge手工CSV对账workaround + 本期新增对账/归因维度：Copilot按量计费风暴（数小时烧光额度/单日$180）+ Zapier重度用户$1,000-3,500/月 + AI语音代理商每客户8-10张发票 + Agent 80% token浪费（$500-2,000/月/人）+ Headroom 52k星（+3.7k/月）+ BAAI「Token Economics」论坛 + 中国「付费上班」/周烧17亿token——从「省钱工具」升维为「AI计费基础设施」+ WAIC补扫：「Token工厂」20+展台/「每千瓦时有效Token」成官方级竞争指标/计费转向Token量与任务结果/中国日均Token调用1000亿→100万亿——大厂在卖Token，没人替买方算账 |
-| 2026-06-27 | AI 代码验证层 / 代码审查瓶颈 — Verification-as-a-Service | 4.5 | 21 | ⭐ 值得深入研究 — ⬆️得分4.4→4.5：Opsera 25万开发者AI PR等待4.6x +「2026瓶颈是验证容量非生成速度」+ 漏洞率2.74x/churn 3.1%→5.7%/信任40%→29% + METR感觉快20%实测慢19% + Hackaday AI维护锁定115评论 + 本期：SonarSource 96%不信任/仅48%总是验证/24%工时修AI输出/SAST漏检97.8% AI特有问题 + SO 49k人84%采用vs29%信任（史上最大缺口）+ 资本三连（Patronus $50M/Probably $9M a16z/Pramaana $27M）|
+| 2026-06-26 | AI 跨工具记忆层 / 持久记忆 — Agent Memory & Context Persistence | 4.8 | 24 | ⭐ 值得深入研究 — **连续23+日最强主题之一，2026-07-21重回并列榜首（4.8）**，需求与供给两侧同时爆发但跨工具赢家仍空缺：Reddit 500投诉分析记忆34%成#1挫折（超幻觉）/91小时年重述 + ClawHub Ontology技能17.5万下载#4（类型化知识图谱记忆）+ codebase-memory-mcp 32k星（158语言持久代码图谱省99% token）+ HN「长会话丢失代码库结构反复rediscovering/像每隔几分钟急刹车的自行车」（48771515）+ Claude Opus 4.6长对话退化量化：第3轮约束到第16轮仅33%合规（第5轮73%）——「上下文衰减」首次可监控，衰减监控+自动重注入成新产品切角；AGENTS.md手工蒸馏workaround主流化 + 历史：Ask HN 15-25%交互时间重建/arXiv「Workspace+Skill」范式/WAIC「模型懂世界、不懂组织」企业侧确认 |
+| 2026-06-26 | AI 合规工具 — EU AI Act + 中国AI拟人化新规 | 4.7 | 23 | ⭐ 值得深入研究 — 🔴 **2026-07-20 EC正式发布Article 50操作指南（距8/2生效仅13天）**：「显而易见」豁免极窄/披露须在首次交互时或之前/标准化「AI」视觉标签已提案；合规被评估「两个开发冲刺」可完成但「开发者不知道自己在射程内」；64%员工影子AI/63%企业无AI数据管理；**OneTrust/Credo AI/Holistic AI全为数万美元企业年费——自服务PLG定价真空被三份独立分析同时点名，$49-199/月切入窗口约6-12个月**；双付费节点：8/2生效 + 12/2存量系统机器可读标记宽限截止 + 历史：EU透明度提前至12-02 + 美国AI EO + Colorado/CT/VT/LA州级拼图 + 中国小红书新规 + 网信办首批7款端侧模型备案/终端L3国标 |
+| 2026-06-26 | AI Agent Cost Guardian — 预算护栏与失控预防 | 4.8 | 23 | ⭐ 值得深入研究 — **连续第2期登顶最佳机会（2026-07-21六渠道同日确认，连续22期上榜最强主题）**，本期供给侧金融化拐点：PH Auriko「LLM调用交易台」793分#7（前量化交易员跨供应商套利路由宣称省30%）+ HN Frugon 67分（本地日志找浪费：大量支出耗在小模型可胜任的侦察任务）+ Reddit「agent不崩溃而是花钱失败」£220过夜账单/268赞「我收更多钱来NOT build agent」+ IH「token成本用Google Sheets追踪」workaround + GitHub OmniRoute 17.9k星（231供应商路由+50免费tier+自动故障转移）+ 中国token套餐涨价30%/额度陷阱「比网费都贵」——品类三级跳：省钱工具→计费基础设施→LLM调用金融化；缺口仍是熔断+归因+分级路由三合一indie友好flat-fee产品 + K3补扫：**输出冗长130M token（同类中位63M的2x）且始终满档推理无法降级——「新旗舰上线即成成本黑洞」重复模式，verbosity预算/推理深度调节工具缺口再确认** + 历史：Copilot按量计费风暴/AiKey $100M/代理商8-10发票/BAAI Token Economics论坛/WAIC「Token工厂」20+展台 |
+| 2026-06-27 | AI 代码验证层 / 代码审查瓶颈 — Verification-as-a-Service | 4.5 | 22 | ⭐ 值得深入研究 — 2026-07-21定位精化为「语义正确性门禁」：**Sqlsure在2,568条专家基准SQL中找到45个真bug零误报（含BIRD gold answer错8倍）——语义验证可行性公开证明** + SO 2026调查66%「almost right」#1挫折/45%称调试AI代码比手写慢/84%采用vs仅3%高度信任 + EchoSift 24,485痛点聚类#1「review passed clean when it should not have」（假阴性通过，pain score 109）+ 35%团队不敢ship AI代码（309工程领导）+ silent business logic failure为vibe coding最危险失败模式 + 历史：SonarSource 96%不信任/SAST漏检97.8% + 资本三连（Patronus $50M/Probably $9M/Pramaana $27M）——生成侧过剩、验证侧短缺的结构性失衡持续加深 |
 | 2026-06-27 | AI 自动化模板市场 — 垂直行业 n8n/Make 模板 | 4.4 | 19 | ⭐ 值得深入研究 — Make.com AI内容运营管道为#1模板品类 + n8n单课4.9万学员/$1B估值/187K星 + Fiverr自动化$5k-15k/月 + Gumroad场景包$49-149定价验证 |
 | 2026-06-28 | AI Agent 可观测性与审计追踪 | 4.3 | 19 | ⭐ 值得深入研究 — 「teams flying blind on agent behavior」+ SO Orchestration/RAG 88.4%无被采纳答案/中位87小时 + AgentX PH周榜#1 668分 |
 | 2026-06-27 | 本地 AI 设备/基础设施 | 4.3 | 19 | ⭐ 值得深入研究 — Odysseus 9.7k星月度#1 + Apfel 743分年度最高Show HN + LocalGPT 331分 + Udemy本地LLM课3万学员4.8星 + Malwarebytes 90%不信任/43%已停用 + Kickstarter「no subscription」溢价 |
 | 2026-06-27 | 中国内容矩阵 OS / 降AI率 | 4.3 | 19 | ⭐ 值得深入研究 — 小红书60万篇限流 + 7月新规37账号连带处罚 +「AI原稿几十曝光、改写版两三百」workaround + 高校AIGC检测底层指纹升级（降AI率工具暴力改写毁公式/引用） |
 | 2026-06-29 | AI Agent Reliability Harness | 4.6 | 18 | ⭐ 值得深入研究 — **Patronus AI $50M B轮收入15x** + AgentX PH#1 668分 + 72%生产Agent第一周失效/88%到不了生产（95%^10=60%）+ V2EX「执行到90%崩溃无状态恢复」+ OAuth过期/静默失败模式已枚举 |
-| 2026-06-26 | AI Agent SEO（GEO）— 品牌 Agent 可见性优化 | 4.5 | 19 | ⭐ 值得深入研究 — Mentions（LLM输出品牌监控）$20K MRR + Kleo $62K MRR/3月 + GEO为新兴收入验证品类 + 本期同月双平台付费信号：Bluerails Discovery PH 706票（AI可见性评分+agent-ready checkout）+ ClickRank AppSumo $89 LTD（面向ChatGPT/Claude/Perplexity/Gemini优化）——「AI SEO」学科成形早鸟窗口 |
-| 2026-06-26 | AI 多模型韧性代理 / 模型路由 | 4.7 | 19 | ⭐ 值得深入研究 — Baseten传$1.5B @$13B（5个月+160%）+ Claude Fable 5出口管制停用（首例国家命令下架）+ GLM-5.2超GPT-5.5且1/7成本 + Yi-Lightning 2约1/15美国价格 + 中国模型占HF Top10五席 + 本期：Sora停服/Whisk并入且数据删除 + Perplexity静默削量（Deep Research 50→20/月）+ Stripe抢在Fable 5停用前1天迁移5000万行代码库 + OpenRouter Fusion以~50%成本对齐能力——路由套利空间持续扩大 + WAIC补扫：8+家超节点多技术栈并存（华为8192卡/阿里M890/燧原/沐曦/摩尔线程等）+ 昇腾算力靠配额分配 + 36kr结论「降低迁移/调度摩擦者赢得开发者」——路由需求从海外下架风险扩展到国产算力多栈适配 |
-| 2026-06-27 | AI Agent 基础设施平台 — 身份、记忆与可观测性 | 4.6 | 19 | ⭐ 值得深入研究 — a16z/YC S26 RFS/Work-Bench/GitHub四方共识「harness才是差异化」+「Software for Agents」品类 + Publora 686票（Agent发布API）+ EdgeOne Makers 1,220票（Agent部署轨道）+ 本期浏览器自动化三平台原语级确认：BrowserAct PH 760票 + Agent Browser ClawHub#6 + Agent-Reach 26.6k星（+1.9k/月，零API费读Twitter/Reddit/YouTube）+ HARPA $12-19/月付费验证 + YC P26 Minicor批内MRR翻三倍 |
+| 2026-06-26 | AI Agent SEO（GEO）— 品牌 Agent 可见性优化 | 4.5 | 20 | ⭐ 值得深入研究 — 2026-07-21获客占比首次量化：**Zigpoll实测14%新注册来自ChatGPT/Claude/Gemini推荐（第三大获客渠道，评论区预测2年内25-30%）** + 可操作洞察浮现「模型推荐用例一句话说清的产品，需成段解释的被跳过」+ AppSumo ZeroRank $69 LTD上架（跨ChatGPT/Perplexity/Gemini/Grok监控）+ Fiverr AEO $300-5,000/项目新高价品类 + Kleo $62K/Mentions $20K MRR持续 + 历史：Bluerails PH 706票/ClickRank AppSumo——「AI SEO」学科成形早鸟窗口 |
+| 2026-06-26 | AI 多模型韧性代理 / 模型路由 | 4.7 | 20 | ⭐ 值得深入研究 — 2026-07-21监管节奏进一步确认抽象层价值：**30天联邦安全审查成前沿模型发布标配**（Fable 5曾停19天/GPT-5.6按政府审查组→企业→个人分层放行）——可预期的30-60天窗口期里企业需要免改码换模型的路由中间件 + Together AI $800M @$8.3B（开源模型使用量12个月翻三倍，企业从闭源逃向开源省成本）+ SambaNova $1B @$11B获JPMorgan本地部署合同（主权AI）+ K3深挖补扫：**「便宜模型分类→中档规划→K3复杂推理→小模型格式化」分级路由标准架构在多篇开发者博客独立收敛（「模型选择变成配置而非架构决策」）**+ K3缓存$0.30/M单任务混合成本$0.94 vs Opus 4.8 $1.80 + 腾讯CodeBuddy OEM嵌入Kimi + Meta关闭Muse Spark开源权重——路由套利与合规双轮驱动 + 历史：Baseten $1.5B/Fable 5出口管制下架/GLM-5.2 1/7成本/Stripe 1天迁5000万行/WAIC 8+家超节点多栈适配 |
+| 2026-06-27 | AI Agent 基础设施平台 — 身份、记忆与可观测性（含数据获取层） | 4.6 | 20 | ⭐ 值得深入研究 — 2026-07-21数据访问层单日5+产品共振：**Context.dev PH月榜#2（1,185分，agent结构化web数据API）+ AnySearch #3（976分，为agent而非人做的搜索）** + ClawHub Agent Browser 5.86万下载 + Exa技能2.4万下载（技术准确性>SEO排名）+ HN Fortress stealth Chromium（43分/53评论争议）+ Agent-Reach 57.9k星（零API费访问7平台）——「搜索为agent重建」成确定性基础设施赛道；注意与EDPB爬取新规的张力：**合规爬取能力将成品类差异化卖点** + 历史：a16z/YC「Software for Agents」/BrowserAct 760票/HARPA付费验证 |
 | 2026-06-26 | AI Agent 工作流治理 | 4.3 | 18 | ⭐ 值得深入研究 — Gartner 40%企业应用2026底含Agent（<5%→40%）+ 88% PoC无法扩展 + LangChain API churn（20.9% SO问题/中位98.4天关闭） |
 | 2026-06-29 | AI Agent Runtime Security & Governance | 4.5 | 17 | ⭐ 值得深入研究 — 🔴 **Agentjacking 85%利用率/2,388组织** + Five Eyes联合指南 + OpenAI Lockdown Mode + Codex SSD bug（HN 462分头条）+ 81%开发者Agent安全担忧 + WAIC补扫：确认/撤回/沙箱被头部厂商背书——阶跃Amoo金融操作需用户确认、误删可撤回、Step AOS内置安全沙箱与可观测性；虎嗅点名「支付确认边界、跨应用权限、误操作撤回」为全行业待解 |
-| 2026-06-26 | AI 输出溯源与证据内联工具 | 4.1 | 17 | ⭐ 值得深入研究 — EU透明度截止**提前至12/2** + YouTube删16频道4.7B观看 + 幻觉「persuasion bombing」更自信更难察觉 |
+| 2026-06-26 | AI 输出溯源与证据内联工具（含C2PA/SynthID存活性监测） | 4.2 | 18 | ⭐ 值得深入研究 — ⬆️4.1→4.2，2026-07-21监管+技术缺口双确认：EU AI Office Q1建议C2PA+SynthID双层方案但「两者的集成、验证和存活性监测工具几乎空白」+ **溯源信号生成时75-85%→分发后衰减至30-50%（元数据被平台截断）——存活性监测中间层是市场空白** + SynthID不开放第三方检测API + 文本水印被改写即失效而Article 50(2)偏要求文本机器可读（密码学签名「生成溯源证书」是可行路径）+ 12/2存量系统宽限截止创造第二付费节点 + C2PA联盟6000+成员/SynthID已标记1000亿+内容 + 历史：EU透明度提前至12/2 + YouTube删16频道4.7B观看 |
 | 2026-06-30 | AI Content De-Homogenizer & Brand Voice Engine | 4.3 | 17 | ⭐ 值得深入研究 — Forbes 14位机构领袖4位点名「generic output」#1挫折 + Google降权「summaries of summaries」+ Kleo $62K MRR验证品牌声音方向 + 本期中美双验证持续：Fiverr事实核查/人味化「2026最干净利基」$0.10-0.25/词 + Hookline 82.1%美国人识别AI内容（抱怨情感扁平非语法）+ Reddit「差异化检测器」无工具缺口 + 小红书60万篇限流「AI原稿几十曝光、手改版几百」 |
 | 2026-07-06 | Agent 技能生态市场 / 发现平台 | 4.3 | 12 | ⭐ 值得深入研究 — ClawHub 39M+下载 + Self-Improving 419K#1（Top25中4个自改进类）+ GOG 184.9K + Composio「只装一个就装它」赢家通吃 |
 | 2026-07-07 | AI Video 后期制作 SaaS | 4.2 | 11 | ⭐ 值得深入研究 — AI视频+329% Upwork最快增长 + OpenMontage 2.5k星（12管道/52工具/500技能）+ MoneyPrinterTurbo 3.3k星 + 顶级UGC编辑$5k-15k/月 |
@@ -37,7 +37,7 @@
 | 2026-07-08 | 本地 AI 工具网络透明度审计 | 3.8 | 8 | ⭐ 值得深入研究 — 本地LLM工具被发现偷传数据 + Cursor 201pts + 社区审计网络行为 |
 | 2026-07-08 | AI PPT 质检+精修后处理层 (中国) | 3.7 | 9 | ⭐ 值得深入研究 — 🇨🇳 「能用但不好用」+ 一份PPT混多种配图风格 + 图表生成缺失为共性 + 9款横评确认 |
 | 2026-07-08 | 中国 AI 合规 API 中转服务 | 3.8 | 9 | ⭐ 值得深入研究 — 🇨🇳 闲鱼成中国最大AI影子市场：Codex $100+额度卖3元 + Claude教程卖几十元 +「厂商花钱获客闲鱼帮用户套现」——结构性需求持续 |
-| 2026-06-27 | WebMCP 优化审计工具（扩展：MCP 服务化/托管） | 4.2 | 8 | ⭐ 值得深入研究 — MCP 110M+月下载 + Skybridge 611票（开源React MCP框架）+ Zapier MCP集成上线 + WAIC补扫（范围扩展）：字节豆包手机要求应用**自建MCP Server并开放数据**才能接入终端Agent生态——MCP成准入协议，「帮长尾应用快速生成/托管MCP Server」有明确付费方（想上豆包/阶跃/荣耀终端的中小应用） |
+| 2026-06-27 | WebMCP 优化审计工具（扩展：MCP 服务化/托管 + App Intents 适配） | 4.2 | 9 | ⭐ 值得深入研究 — MCP 110M+月下载 + Skybridge 611票（开源React MCP框架）+ Zapier MCP集成上线 + 字节豆包手机要求应用**自建MCP Server并开放数据**才能接入终端Agent生态——MCP成准入协议 + 2026-07-21范围再扩展：iOS 27 App Intents 2.0「Siri无需打开App直接调用能力」重构分发逻辑，不暴露Intents的App将失去入口可见性——「帮长尾应用快速生成/托管MCP Server + App Intents适配」付费方进一步扩大（想上豆包/阶跃/荣耀终端 + 苹果2.5亿国行设备生态的中小应用） |
 | 2026-06-27 | AI 电商销售 Agent | 4.2 | 9 | ⭐ 值得深入研究 — Tidio 1,196评论4.8星Shopify #1 + Wiser 525评论4.9星（AOV提升付费验证）+ 电商管理Upwork +130% |
 | 2026-07-01 | 垂直 AI 移动 App 设计工具 | 3.9 | 7 | ⭐ 值得深入研究 — Sleek $10K MRR/6周零营销 |
 | 2026-07-02 | AI Voice Agent SaaS | 3.9 | 8 | ⭐ 值得深入研究 — Letterly 352评论4.69星$89 LTD（语音输入强留存）+ 奇绩Lulula AI全双工语音Agent + Gemini Live Translate 70+语言 |
@@ -50,17 +50,17 @@
 | 2026-07-08 | 中国零代码AI应用质量审查 | 4.0 | 7 | ⭐ 值得深入研究 |
 | 2026-07-08 | Agent KYC / 身份管理 | 3.9 | 7 | ⭐ 值得深入研究 — a16z「身份是Agent经济瓶颈」+ arXiv Gap Analysis |
 | 2026-07-09 | 本地优先 AI 知识工作区 + 持久记忆 | 4.2 | 7 | ⭐ 值得深入研究 — OpenKnowledge 381分（2026年第三高AI Show HN，AI-first Obsidian/Notion替代）+ Odysseus 9.7k星月度#1 |
-| 2026-07-09 | 中国 AI 视频/短剧生产管道 | 4.0 | 6 | ⭐ 值得深入研究 — 生数科技A+轮6亿+ AIGC应用赛道单笔均7.1亿 |
-| 2026-07-09 | 中国一人公司 AI 服务平台 | 4.1 | 7 | ⭐ 值得深入研究 — 日token调用140万亿（2年1000x）催生OPC创业潮 + 闲鱼AI虚拟商品#1品类 + PPT模板周出百单 +「窗口期1-2年」 |
+| 2026-07-09 | 中国 AI 视频/短剧生产管道 | 4.0 | 7 | ⭐ 值得深入研究 — 生数科技A+轮6亿+ AIGC应用赛道单笔均7.1亿 + 2026-07-21补扫：**可灵ARR超8亿元/月活5000万/日生成300万条/估值$20B**（高盛预测年底$1B ARR）+ 字节Seedance 2.5企业内测（$50-80/月，电商批量短视频）——商业化regime确认，管道/后期工具是配套缺口 |
+| 2026-07-09 | 中国一人公司 AI 服务平台 | 4.2 | 8 | ⭐ 值得深入研究 — ⬆️4.1→4.2，2026-07-21 WAIC补扫官方背书：**WAIC九届首设OPC超级个体专区（180家一人公司入驻）+「OPC独立先锋挑战赛」711项目选22个** + 超1/3新公司单人创办（六年+53%）+ 上海模速空间最高100%租金减免/弹性算力配套 + 闲鱼代做经济定价细化（虚拟商品9.9-29.9元单模板周百单纯利1-3千、AI代写50-500元/篇AI初稿+人工核查月套餐）——从社区叙事升格为政府背书赛道 + 历史：日token调用140万亿（2年1000x）+ BAAI OPC议题 +「窗口期1-2年」 |
 | 2026-07-09 | Agent 评估即服务 | 4.0 | 7 | ⭐ 值得深入研究 — AgentX PH周榜#1 668分 + Patronus收入15x——评估品类资本与产品双确认 |
 | 2026-07-09 | AI SaaS 用量计费基础设施 | 3.8 | 6 | ⭐ 值得深入研究 — GitHub Copilot转token计费 + 订阅疲劳 |
-| 2026-07-09 | AI Agent 技能安全扫描平台 | 4.5 | 8 | ⭐ 值得深入研究 — NVIDIA SkillSpector 912星（品类确立）+ Agentjacking 85%/2,388组织 + Five Eyes指南 + Chainguard拦截8,783恶意npm包 + OpenClaw 210k星无审核/ClawHub 39M下载 + 本期5条事件流：ClawHavoc 341后门技能下架/2,419可疑技能清除 + 朝鲜APT与Miasma npm利用Agent跳过包验证 + Fedora基础设施Agent失控（HN）+ Cline GitHub Actions提示注入 + MCPSHIELD/DEMM-Bench学术化——「扫描有了，治理没有」 |
+| 2026-07-09 | AI Agent 技能安全扫描平台（供应链安全与治理） | 4.5 | 9 | ⭐ 值得深入研究 — 2026-07-21五渠道确认「扫描已刚需化、治理层空白」：**Skill Vetter 22.8万下载居ClawHub#2**（ClawHavoc 341恶意技能/2,419可疑技能下架直接驱动）+ **#1技能Self-Improving Agent（41.9万下载）原版本身被标记数据外泄——最热技能即供应链风险活案例** + HN MakerChecker（RBAC+签名审计日志+「agent不能批准自己的工作」，瞄准金融/医疗，44分）+ GitHub strix渗透测试agent 42k星/周增7k（PoC验证漏洞）+ 融资Oak $60M种子（agent身份IAM，访谈100位CISO）+ BAAI agent安全专门论坛（记忆投毒/工具链劫持）+ 历史：NVIDIA SkillSpector/Agentjacking 85%/2,388组织/Five Eyes指南/朝鲜APT——缺口：扫描（事前）+运行时权限治理+签名审计（事后）一体化 |
 | 2026-07-09 | 中国 AI 订阅成本透明化工具 | 3.8 | 7 | ⭐ 值得深入研究 — 「贵是真的贵，个人真用得起么」+ 国产/海外10-20倍价差 + Claude Opus vs DeepSeek 18x |
 | 2026-07-08 | AI 模型缓存优化工具 | 3.8 | 6 | ⭐ 值得深入研究 |
 | 2026-07-07 | AI 品牌语音持久化写作工具 | 3.8 | 7 | ⭐ 值得深入研究 — Forbes 4/14机构领袖点名同质化 + Poppy AI 4.88星146评论（on-brand内容复用）+ Kleo $62K MRR |
-| 2026-07-07 | Agent Multiplexer / 多Agent并行编排 | 3.8 | 6 | ⭐ 值得深入研究 — 「2026年核心分水岭=并行工作流支持」 |
+| 2026-07-07 | Agent Multiplexer / 多Agent并行编排 | 3.8 | 7 | ⭐ 值得深入研究 — 「2026年核心分水岭=并行工作流支持」+ 2026-07-21：cc-switch 118.9k星（BAAI Hub star数最高项目，跨Claude Code/Codex/OpenCode/Gemini CLI统一桌面管理）+ 少数派：现有终端单窗口结构无法管理并行agent、Otty仅macOS——跨平台多Agent管理终端/任务状态可视化面板缺口持续 |
 | 2026-07-07 | AI Token压缩/优化中间件 | 3.8 | 7 | ⭐ 值得深入研究 — headroom 3.7k星/月（20-95%压缩）+ codebase-memory-mcp 99%省token + ctx 45,734→917——品类被GitHub趋势榜确认 |
-| 2026-07-07 | AI Agent 搜索基础设施 | 3.7 | 6 | ⭐ 值得深入研究 |
+| 2026-07-07 | AI Agent 搜索基础设施 | 4.0 | 7 | ⭐ 值得深入研究 — ⬆️3.7→4.0，2026-07-21进入本期Top 10（Agent数据获取基础设施）：Context.dev PH#2 1,185分 + AnySearch PH#3 976分 + Agent Browser 5.86万下载 + Exa 2.4万下载 + Fortress反封锁争议 + Agent-Reach 57.9k星——单日5+产品共振罕见；垂直agent搜索API（法律/科研/金融文件、置信度评分结构化返回）是细分切口 |
 | 2026-07-07 | Zapier→Make 迁移产品化服务 | 3.8 | 6 | ⭐ 值得深入研究 — r/nocode迁移潮 + $300/月@10k任务/$800+@100k +「感到定价痛就迁移」社区共识 |
 | 2026-07-06 | Agent Trace 数据集即服务 | 3.7 | 6 | ⭐ 值得深入研究 — HF trending被agent trace数据集主导：Fable-5-traces 75.6k下载 + Open-SWE-Traces + General Intuition $320M（动作数据护城河） |
 | 2026-06-26 | AI 成本可观测平台 | 4.8 | 6 | ⭐ 值得深入研究 — 整合入 AI Agent Cost Guardian |
@@ -73,12 +73,12 @@
 | 2026-07-10 | 建筑业AI WIP报表自动化 | 3.7 | 5 | ⭐ 值得深入研究 |
 | 2026-07-10 | AI社区反垃圾/重复问题治理 | 3.7 | 5 | ⭐ 值得深入研究 |
 | 2026-07-10 | 多渠道电商净利润归因工具 | 3.7 | 5 | ⭐ 值得深入研究 |
-| 2026-07-10 | 中国国产AI编码工具替代加速 | 3.8 | 5 | ⭐ 值得深入研究 — 🇨🇳 字节Trae免费 + 百度Comate 44%采纳 + 「双栈策略」 |
+| 2026-07-10 | 中国国产AI编码工具替代加速 | 3.8 | 6 | ⭐ 值得深入研究 — 🇨🇳 字节Trae免费 + 百度Comate 44%采纳 + 「双栈策略」+ 2026-07-21补扫：字节TRAE 2.0 SOLO模式（7/21，规划→编码→测试→部署全流程）与腾讯CodeBuddy IDE（7/22）同周出击 + 阿里内部全面禁用Claude Code（国内首家大厂明令）——通用编码Agent对独立开发者关闭，剩余空间在Windows适配/中文场景质检/多Agent终端管理等配套层 |
 | 2026-07-13 | AI Agent 发现/策展平台 | 3.8 | 5 | ⭐ 值得深入研究 — 100+工具「90%套壳割韭菜」选型焦虑 + r/ProductivityApps选择焦虑（5+重叠订阅无赢家） |
 | 2026-07-13 | AI Sales Rep-First CRM Overlay | 3.8 | 5 | ⭐ 值得深入研究 — 「CRMs built for managers not reps」Reddit多社区持续 |
 | 2026-07-13 | 中国双栈AI统一路由器 | 3.9 | 5 | ⭐ 值得深入研究 — 🇨🇳 国产+海外统一工作台需求（DeepSeek/Kimi/通义+Claude/GPT）+ 人民币计费 + 多终端上下文同步 |
 | 2026-07-13 | AI演示文稿引用验证层 | 3.8 | 4 | ⭐ 值得深入研究 |
-| 2026-07-13 | 小房东AI物业管理微SaaS | 3.7 | 5 | ⭐ 值得深入研究 — r/Landlord <10套错过HVAC/Excel管房workaround + 租客材料造假（伪造工资单/篡改PDF）×文档取证AI=新能力×老痛点 + $10-20/月+$5-10/次筛查 |
+| 2026-07-13 | 小房东AI物业管理微SaaS | 3.8 | 6 | ⭐ 值得深入研究 — r/Landlord <10套错过HVAC/Excel管房workaround + 租客材料造假（伪造工资单/篡改PDF）×文档取证AI=新能力×老痛点 + $10-20/月+$5-10/次筛查 + 2026-07-21信号重现（⬆️3.7→3.8）：r/Landlord「There HAS to be a better way」/大平台按大组合定价把1-10套房东挤出/收入文件验证欺诈持续增长——$15-25/月定价信号复确认；AI文档伪造检测为2026新增多模态能力=timing正确 |
 | 2026-07-13 | 税务季AI智能排程器 | 3.7 | 5 | ⭐ 值得深入研究 — r/taxpros客户消息碎片三渠道 + $199/季定价信号 |
 | 2026-07-14 | AI-to-Production Deployment Bridge (MVP Shipping Infrastructure) | 4.2 | 4 | ⭐ 值得深入研究 — IH「代码便宜了架构不便宜」+ 88% PoC无法扩展 + Fiverr AI集成+178% + 非技术创始人48h/$30K MRR |
 | 2026-07-14 | AI 客服质量审计工具 | 3.8 | 4 | ⭐ 值得深入研究 — OnePoll 29%最挫败体验 + 端到端循环无人工升级 |
@@ -104,11 +104,14 @@
 | 2026-07-16 | AI-Powered Freelancer Ops Hub (Invoice+Project+Payment) | 3.7 | 1 | 🆕 「3个工具管发票每月4小时」r/freelance + $10-50/月WTP |
 | 2026-07-16 | Micro-Influencer AI Sponsorship Deal Tracker | 3.6 | 1 | 🆕 微型KOL频繁错过赞助帖截止 + $10-15/月 |
 | 2026-07-16 | AI Image Post-Processing & Correction Agent | 3.7 | 2 | ⬆️ 手部/文字/构图仍失败 + AI PPT配图风格不统一（中国横评共性问题） |
-| 2026-07-17 | Agent 行动审批风险分级层（Permission Fatigue Killer） | 4.0 | 1 | 🆕 Show HN「Continue? Y/N」讽刺游戏386分（2026 AI类第二高分——纯情绪共鸣即可冲榜）+ HN「审批太多毁生产力太少产生风险」两难 + OpenAI Lockdown/Google沙箱只覆盖自家生态——跨工具风险分级审批层空白 |
+| 2026-07-17 | Agent 监督工作台 — HITL疲劳审查UX（原：Agent 行动审批风险分级层） | 4.4 | 2 | ⬆️ **4.0→4.4，2026-07-21扩展升级并进入Top 10**，4渠道同周共振：Pydantic《The Human-in-the-Loop is Tired》上HN头版（凌晨2点还在prompt/醒来30个过夜PR/「At that point, what am I still doing here?」；MS研究合并PR+24%但审查时间未计量——「监督疲劳」被命名）+ PH YAGNI 197分（agent靠可读track record赚取自治权——信任机制产品化首例）+ HN Juggler 280分（「会话是树不是doom-scroll」，所有tool call可检查可编辑）+ Timbal AI 523分（HITL内建于runtime）+ 中国多Agent并行终端管理混乱（cc-switch 118.9k星侧证）+ 历史：Show HN「Continue? Y/N」386分——**监督成本正取代生成成本成为新瓶颈，树状审查/风险分级批准/track record自治权的审查UX是未被占领的层** |
 | 2026-07-17 | 会议智能→工作流集成层（Meeting-to-Action Pipeline） | 3.9 | 1 | 🆕 Zapier生态最高频复制工作流但「集成层对多数SMB仍是手工」+ Letterly 352评论$89 LTD + Upwork AI集成+178%（$75-250/单）+ Fiverr自动化$5k-15k/月——产品化=把最高频人肉配置变成开箱即用 |
 | 2026-07-17 | 竞争情报自动化产品（CI-as-a-Scenario） | 3.8 | 1 | 🆕 Make.com官方列为「未被产品化的高潜模式」+ daily_stock_analysis 7.8k星/月验证LLM持续监控+自动通知 + Gumroad「结果导向」$30-60定价碾压prompt包——可Make/n8n模板+Gumroad零成本MVP |
 | 2026-07-20 | Agency Client-Reporting Narrative Engine | 3.9 | 1 | 🆕 r/projectmanagement：手工客户报告1-3小时/客户/周为代理商#1运营瓶颈（100+评论帖/45%负面情绪）+ ClickUp/Monday沦为「报告坟场」团队退回Slack（数据源须在工作发生地）+ Meerkats.ai $3K MRR/4周「从一个高价值痛任务切入」+ Zapier会议→CRM同类能力验证——LLM叙事生成恰是缺失层 |
 | 2026-07-20 | TradeQuote AI — Instant Estimates for Trades | 3.9 | 1 | 🆕 r/Plumbing等四个trade subreddit：每天3-4小时做不转化报价 + 报价App曾把标书发错客户 + Anthropic 40万会话「领域专长>编码能力」（垂直Agent TAM反转）+ Letterly 352评论验证语音输入UX + 照片→材料清单新多模态能力×老高频痛点；$30-50/月微SaaS定位 |
+| 2026-07-21 | 训练数据爬取合规审计工具 — robots.txt/ai.txt GDPR审计即服务 | 4.3 | 1 | 🆕 EDPB Guidelines 03/2026（7/7采纳，咨询至10/30）首次赋予robots.txt/ai.txt/CAPTCHA以GDPR法律效力：爬取前须系统性检查记录每个来源域名协议声明、存量数据集需回溯审计、买方需供应商合规证明 + Reed Smith明确「目前几乎没有专门产品」+ 律师界警告合规成本不可预测将迫使欧洲初创外购模型——**可预测性本身就是产品**；监管定义、零竞品、周末可出MVP（爬协议+存证时间戳+LIA报告生成）的典型蓝海，按URL数量计费面向微调开放权重模型的AI初创与数据供应商 |
+| 2026-07-21 | 苹果中国生态端侧AI套利 — Qwen MLX应用与App Intents适配服务 | 4.1 | 1 | 🆕 Apple Intelligence 7/8完成中国备案（2.5亿国行设备，Qwen管语言/百度管视觉，Q3-Q4随iPhone 18 Pro上线）+ Qwen3全系32款MLX量化模型开源（iPhone/Mac本地可跑、零API成本、数据不出境合规）+ iOS 27 App Intents 2.0重构分发逻辑 + WAIC三款Agentic手机同月发布——端侧Agent入口成中美双线共同趋势；**36氪首测国行版体验平庸（「小学生水平」文案/照片消除留阴影/后端模型混乱）恰是第三方补位窗口**；三条切入：①Qwen MLX完全本地推理隐私优先工具（律师/医生/金融，国行版无PCC无隐私白皮书）②帮长尾App做App Intents/MCP适配的服务生意③针对Apple Intelligence弱项的补强App |
+| 2026-07-21 | TaxPulse — 自由职业者实时税务预估 | 3.7 | 1 | 🆕 连接Stripe/银行流水实时计算应预留税额+季度预缴提醒——「gig workers到4月才知道该留多少税」；1M+投诉跨Reddit/Capterra/G2/应用商店分析列为高严重度+高市场缺口（用户试过现有方案仍失败，缺口评分9.0-10.0）+ 供给侧共振：Upwork AI技能+109% YoY/Fiverr top earners $5K-15K/月=taxable收入人群快速扩大；现有方案二元化（请会计 vs 粗略估算）中间真空；与「税务季AI智能排程器」（面向tax pros）、「Freelancer Ops Hub」（发票）相邻但目标用户与切口不同 |
 
 ---
 
