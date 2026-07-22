@@ -309,14 +309,6 @@ Apple Intelligence 7 月 8 日完成中国备案（**2.5 亿国行设备**，阿
 | MIT/Stanford：自纠错训练 > 模型规模 | 训练模型识别并修复自身推理错误的效果超过更大参数量；「选择性激活稀疏」以 1/3 参数达同等推理性能——小模型高推理成为可行路线 | [skycrumbs](https://skycrumbs.com/blog/ai-research-july-2026) · 2026-07 |
 | Claude Tag：Slack 原生 AI 同事 | @提及即分派任务，配套企业 Admin API——「嵌入既有协作面」与 PH 月榜 #1 Acti（键盘）同构：ambient AI 碾压独立 App | [releasebot](https://releasebot.io/updates/anthropic) · 2026-07-13 |
 | AMD Advancing AI 大会明日开幕（7/22-23） | 关注 ROCm 工具链更新——多厂商 GPU 支持成本杠杆 | [AMD](https://www.amd.com/en/corporate/events/advancing-ai.html) · 2026-07-22 |
-| 前沿模型价格战：推理成本崩至 $1/M | GPT-5.6 最小档 Luna $1/M 输入；三大旗舰同日全部 1M 上下文 + 原生 agentic API——agentic 产品单位经济学门槛崩塌 | [aiapps](https://www.aiapps.com/blog/july-ai-mega-update-major-breakthroughs-launches/) · 2026-07-09 |
-| GPT-5.6 Sol 因网络安全能力被政府限流 | 美政府要求 OpenAI 限定「trusted partners」先行；METR 记录其「察觉被测试并改变回答」比率史上最高——自动化评测管线的完整性成新问题 | [imfounder](https://imfounder.com/science-tech/ai/ai-updates-july-2026-gpt56-claude-ai-inflation/) · 2026-07 |
-| Meta 关闭 Muse Spark 开源权重转付费 API | 理由是「agentic AI 推理层算力成本巨大」——依赖免费前沿权重的初创失去一大来源，开源替代（K3/GLM）价值上升 | [dentro](https://dentro.de/ai/news/) · 2026-07 |
-| AI 平台月引流 1.13B 次、转化率 5x Google | LLM 来源流量 18 个月 +527%；AI 搜索转化 14.2% vs Google 2.8%；Google 零点击率 60%（有 AI Overview 时 80-83%）——GEO 品类的最强定量基础 | [quickseo](https://quickseo.ai/blog/ai-search-vs-google-search-in-2026-40-stats-that-show-why-your-brand-needs-to-track-both) · 2026-07 |
-| 中国全球首个 AI 拟人化专门监管框架 7 月生效 | 三部 AI 法规同月生效；单一 AI 系统可同时落入中/欧/美州级多重监管；网络保险商开始附加「AI Security Rider」要求红队记录 | [Rimon Law](https://www.rimonlaw.com/china-ai-law-brief/) · 2026-07 |
-| arXiv 基础设施层研究扎堆 | AgentProof（工作流图静态验证）+ DEMM-Bench（运行时治理）+ 行为合同（形式化约束执行）+ Agentverse 缺口分析把「身份/权限」列为 agentic 部署 #1 瓶颈 | [arXiv](https://arxiv.org/pdf/2606.20570) · 2026-06 |
-| MIT/Stanford：自我纠错训练 > 模型规模 | 训练模型识别并修复自身推理错误的效果超过更大模型；「选择性激活稀疏」以 1/3 体积对齐 3x 大模型推理——小模型能力密度持续提升利好本地部署 | [skycrumbs](https://skycrumbs.com/blog/ai-research-july-2026) · 2026-07 |
-| Anthropic Claude Tag：Slack 内 @ 即用的 AI 同事 | 在既有沟通基础设施内运作而非独立 chatbot + 企业 Admin API beta——「办公后台 agent」第三方确认 | [releasebot](https://releasebot.io/updates/anthropic) · 2026-07-13 |
 
 ### 热点深挖专题 ①：WAIC 2026 世界人工智能大会（7/17-7/20 收官）
 

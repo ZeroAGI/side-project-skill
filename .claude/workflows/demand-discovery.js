@@ -29,8 +29,14 @@ const SIGNAL_SCHEMA = {
           user_quote: { type: 'string' },
           metrics: { type: 'string' },
           ai_opportunity: { type: 'string' },
+          // 信源溯源：source_url 是否为一手平台（原帖/官方页/监管机构/主流媒体一手报道）。
+          // SEO 聚合站、个人博客转述、厂商营销号 = secondhand: true。
+          secondhand: { type: 'boolean' },
+          // 数据原始出处平台（如 reddit.com, github.com, clawhub.ai, survey.stackoverflow.co）——
+          // 与 source_url 域名不一致时即为二手转述。
+          primary_platform: { type: 'string' },
         },
-        required: ['title', 'signal_type', 'description'],
+        required: ['title', 'signal_type', 'description', 'source_url', 'secondhand'],
       },
     },
   },
@@ -403,9 +409,17 @@ ${g.prompt}
 IMPORTANT RULES:
 - Run searches ONE AT A TIME to avoid rate limits. Wait for each to complete before starting the next.
 - Use WebSearch for searching, WebFetch for extracting content from promising pages.
-- For each finding, extract structured data: title, source_url, source_date, signal_type ("${g.type}"), description, user_quote (exact words if available), metrics, ai_opportunity.
+- For each finding, extract structured data: title, source_url, source_date, signal_type ("${g.type}"), description, user_quote (exact words if available), metrics, ai_opportunity, secondhand, primary_platform.
 - Return at least 5 signals if available, up to 15.
-- If a search returns no results, try alternative queries without site: prefix.`,
+- If a search returns no results, try alternative queries without site: prefix.
+
+SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of signals cited SEO aggregators instead of primary sources):
+- KEY QUANTITATIVE DATA (download counts, GitHub stars, survey percentages, revenue/MRR, vote counts) MUST cite the PRIMARY platform URL: github.com, clawhub.ai, producthunt.com, reddit.com, news.ycombinator.com, survey.stackoverflow.co, official company blogs/press releases, regulator sites.
+- When a search result is an SEO aggregator/roundup blog (e.g. "top 10 trending repos" listicles), WebFetch the primary page it references and cite THAT url. Only if the primary page cannot be located, keep the aggregator URL and set secondhand: true.
+- Community pain points (Reddit/HN/V2EX/知乎) MUST link the actual thread. A blog post summarizing "what Reddit thinks" is secondhand: true — the numbers and quotes in it are unverified.
+- Watch for conflict-of-interest sources: vendor marketing blogs, API resellers, "pain point database" products citing their own data. Always mark these secondhand: true and mention the bias in description.
+- Never fabricate or "smooth over" a URL. If you did not see the page, do not cite it.
+- secondhand: false is a claim that source_url IS the primary source (original thread / official page / first-party report). Set it honestly — downstream analysis discounts secondhand-only evidence.`,
       {
         label: g.label,
         phase: 'Signal Collection',
@@ -429,7 +443,7 @@ log('Analyzing cross-channel patterns and scoring opportunities...')
 const signalSummary = validSignals
   .map((s) => {
     const lines = s.signals.map((sig) => {
-      let line = '- [' + sig.signal_type + '] ' + sig.title + ': ' + sig.description
+      let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + sig.title + ': ' + sig.description
       if (sig.user_quote) line += ' — "' + sig.user_quote + '"'
       if (sig.source_url) line += ' (' + sig.source_url + ')'
       return line
@@ -464,7 +478,9 @@ ${signalSummary}
 - composite_score: Overall 1-5 weighted score
 
 Return the TOP 10 opportunities sorted by composite_score, plus cross-validated signals and meta-insights.
-For each opportunity: name, one_liner, target_user, all 6 dimension scores, composite_score, cross_validation description, source URLs, is_new (true if not seen before).`,
+For each opportunity: name, one_liner, target_user, all 6 dimension scores, composite_score, cross_validation description, source URLs, is_new (true if not seen before).
+
+EVIDENCE WEIGHTING: Signals tagged [二手转述] are secondhand (SEO aggregators / blog paraphrases) — their numbers are unverified. An opportunity whose KEY evidence is entirely secondhand must be scored more conservatively (cap pain/market scores at 4) and its cross_validation must say so explicitly. Cross-validation only counts as independent when the underlying primary sources differ — three blogs paraphrasing the same survey is ONE source, not three.`,
   {
     label: 'Cross-Analysis',
     phase: 'Cross-Analysis',
@@ -516,7 +532,9 @@ The report MUST follow this template structure:
 - Appearance count ≥3 → mark "⭐ 值得深入研究"
 - Keep existing manually-marked statuses
 
-Write both files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.`,
+Write both files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.
+
+SOURCE ANNOTATION RULE: signals with secondhand: true are unverified paraphrases — when citing their numbers in the report, append「（二手转述，未经一手核实）」after the figure, and never let a secondhand-only number be the headline evidence for a Top 3 opportunity. In 今日概览, report the count of secondhand signals alongside total signals.`,
   {
     label: 'Report Writer',
     phase: 'Report Writing',
