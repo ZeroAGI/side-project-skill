@@ -35,6 +35,9 @@ const SIGNAL_SCHEMA = {
           // 数据原始出处平台（如 reddit.com, github.com, clawhub.ai, survey.stackoverflow.co）——
           // 与 source_url 域名不一致时即为二手转述。
           primary_platform: { type: 'string' },
+          // 访问/抓取日期（即扫描当天）。source_date 必须是内容原始日期（发帖日/上线日/发布日），
+          // 两者不可混同；榜单快照类信号 source_date 留空、以 fetched_at 表达时效。
+          fetched_at: { type: 'string' },
         },
         required: ['title', 'signal_type', 'description', 'source_url', 'secondhand'],
       },
@@ -87,178 +90,239 @@ if (!/^\d{4}-\d{2}(-\d{2})?$/.test(rawDate)) {
 const today = rawDate
 const year = today.slice(0, 4)
 const month = today.slice(0, 7)
+// PH 榜单 URL 用非补零月/日：/leaderboard/monthly/2026/7、/leaderboard/daily/2026/7/21
+const monthNum = String(parseInt(today.slice(5, 7), 10))
+const dayNum = today.length >= 10 ? String(parseInt(today.slice(8, 10), 10)) : ''
+
+// 每组通用的日期语义说明（2026-07-21 审计：PH 组全部信号 source_date 被错填为当月 1 日）
+const DATE_RULES = `DATE SEMANTICS (hard rules):
+- source_date = the content's ORIGINAL date (post date / product launch date / publish date). NEVER the date you visited the page, NEVER a placeholder like the 1st of the month.
+- fetched_at = today (${today}), the date you accessed the page.
+- Leaderboard/marketplace snapshots (a "top this month" page) have no single content date — leave source_date empty and rely on fetched_at. For an individual product on that leaderboard, source_date is its LAUNCH date if visible on its page.
+- If you cannot determine the original date, leave source_date empty. An empty field is better than a wrong date.`
 
 const SEARCH_GROUPS = [
   {
     key: 'producthunt-appsumo-clawhub',
     label: 'Product Hunt + AppSumo + ClawHub',
     type: 'product_market',
-    prompt: `Search for PRODUCT MARKET SIGNALS from Product Hunt, AppSumo, and ClawHub.
+    prompt: `Collect PRODUCT MARKET SIGNALS from Product Hunt, AppSumo, and ClawHub.
 
-Run these searches ONE AT A TIME (sequential, not parallel):
-1. "Product Hunt" most upvoted AI tools ${month}
-2. site:producthunt.com AI SaaS launched this week ${year}
-3. AppSumo best selling AI tools ${month} ${year}
-4. site:clawhub.ai most downloaded skills ${month} ${year}
-5. ClawHub OpenClaw popular skills AI ${year}
+FETCH-FIRST: these platforms have public leaderboard pages — WebFetch them DIRECTLY. Do NOT search for "what's trending on Product Hunt"; go read the leaderboard. Fetch ONE AT A TIME:
+1. https://www.producthunt.com/leaderboard/monthly/${year}/${monthNum} — monthly leaderboard
+${dayNum ? `2. https://www.producthunt.com/leaderboard/daily/${year}/${monthNum}/${dayNum} — today's daily leaderboard (also try 1-2 recent days by decrementing the day)` : ''}
+3. https://appsumo.com/collections/trending-ai/ — trending AI deals
+4. https://appsumo.com/browse/ — browse page (deal categories, prices, review counts)
+5. https://clawhub.ai/ — read the "Featured" / "Top" / "Trending" sections for agent skill download counts
 
-For each product found, extract: name, problem solved, target user, business model, popularity metrics (votes/sales/reviews/downloads), and AI practitioner insights.
+EXTRACTION RULES:
+- Product Hunt: capture the leaderboard CONTIGUOUSLY from rank #1 down (aim for top 10) — do not cherry-pick. Record rank, votes, comments. For notable products, fetch the product page for launch date and tagline; source_date = launch date.
+- AppSumo: deal name, price (LTD price vs original), rating, review count, category.
+- ClawHub: skill name, download count, what capability gap it fills.
+- Only fall back to WebSearch if a direct fetch fails (blocked/empty), and then mark those results secondhand as appropriate.
+
+For each product: name, problem solved, target user, business model, popularity metrics, and AI practitioner insights.
 ClawHub: focus on what Agent skills are in high demand → AI Agent ecosystem real needs.
-Focus on last 7 days. Include source URLs.`,
+
+${DATE_RULES}`,
   },
   {
     key: 'upwork-fiverr-gumroad-zapier',
     label: 'Upwork + Fiverr + Gumroad + Zapier/Make',
     type: 'product_market',
-    prompt: `Search for PRODUCT MARKET SIGNALS from freelance marketplaces, digital product stores, and automation platforms.
+    prompt: `Collect PRODUCT MARKET SIGNALS from freelance marketplaces, digital product stores, and automation platforms.
 
-Run these searches ONE AT A TIME:
-1. Upwork in-demand AI skills ${year} most hired
-2. site:fiverr.com AI services trending ${year}
-3. Gumroad trending AI digital products ${month} ${year}
-4. site:zapier.com/apps popular integrations AI ${year}
-5. Make.com most popular AI automation integrations ${year}
+FETCH-FIRST: WebFetch these public pages DIRECTLY, one at a time:
+1. https://www.upwork.com/freelance-jobs/ — browse in-demand AI/automation job categories (follow into AI-related subcategories for rates and posting volume)
+2. https://www.fiverr.com/categories/trending — trending gig categories (follow into AI service categories for price ranges and review counts)
+3. https://gumroad.com/discover — discover page (AI/software categories, best sellers, prices, sales counts)
+4. https://zapier.com/apps — popular apps/integrations (which AI apps are most-connected)
+5. https://www.make.com/en/integrations — popular integrations
 
-Extract: service/product type, price range, purchase frequency, what's being productized.
-Zapier/Make: focus on what workflows are high-frequency connected → automation pain = productization opportunity.
-Focus on last 7-30 days. Include source URLs.`,
+EXTRACTION RULES:
+- Extract: service/product type, price range, purchase/review counts, what's being productized.
+- Zapier/Make: which workflows are high-frequency connected → automation pain = productization opportunity.
+- These marketplaces may block bots or require JS. If a fetch returns empty/blocked, retry once with the platform's sitemap or category URL; only then fall back to WebSearch, marking results secondhand when the URL is not the platform itself.
+
+${DATE_RULES}`,
   },
   {
     key: 'kickstarter-shopify-chrome-udemy',
     label: 'Kickstarter + Shopify + Chrome Store + Udemy',
     type: 'product_market',
-    prompt: `Search for PRODUCT MARKET SIGNALS from crowdfunding, e-commerce, browser extensions, and learning platforms.
+    prompt: `Collect PRODUCT MARKET SIGNALS from crowdfunding, e-commerce, browser extensions, and learning platforms.
 
-Run these searches ONE AT A TIME:
-1. Kickstarter trending AI tech projects ${month} ${year}
-2. site:apps.shopify.com AI best selling ${year}
-3. Chrome Web Store AI productivity extensions ${year} most users
-4. Udemy best selling AI course ${month} ${year}
-5. site:udemy.com AI tool automation workflow highest rated ${year}
+FETCH-FIRST: WebFetch these public pages DIRECTLY, one at a time:
+1. https://www.kickstarter.com/discover — discover page (Technology category; funding amounts, backer counts, days left)
+2. https://apps.shopify.com/ — app store home + AI category (ratings, review counts, pricing)
+3. https://chromewebstore.google.com/ — featured/popular AI & productivity extensions (user counts, ratings)
+4. https://www.udemy.com/featured-topics/ — featured topics (AI/automation course enrollment counts, ratings)
 
-Extract: product name, funding amount/user count, problem solved, pricing model.
-Udemy: what skills/tools people pay to learn → demand heat validation.
-Focus on last 7-30 days. Include source URLs.`,
+EXTRACTION RULES:
+- Kickstarter: source_date = campaign launch date if visible; funding amount and backer count are as-of fetched_at.
+- Shopify apps: review count/rating are cumulative — do NOT assign them a fresh source_date; source_date = app listing launch date ONLY if shown, else empty.
+- Udemy: what skills/tools people pay to learn → demand heat validation.
+- Fall back to WebSearch only when a direct fetch fails; mark non-platform URLs secondhand.
+
+${DATE_RULES}`,
   },
   {
     key: 'reddit',
     label: 'Reddit Pain Points',
     type: 'pain_point',
-    prompt: `Search for PAIN POINT SIGNALS from Reddit.
+    prompt: `Collect PAIN POINT SIGNALS from Reddit — every signal MUST link an actual reddit.com thread.
 
-Run these searches ONE AT A TIME:
-1. site:reddit.com "I wish there was" AI tool ${year}
-2. site:reddit.com "frustrated with" SaaS ${year}
-3. site:reddit.com/r/SaaS "idea" OR "built" ${month}
-4. site:reddit.com "anyone know a tool" automation ${year}
+FETCH-FIRST: WebFetch subreddit listings DIRECTLY (old.reddit.com renders more reliably), one at a time:
+1. https://old.reddit.com/r/SaaS/top/?t=week
+2. https://old.reddit.com/r/startups/top/?t=week
+3. https://old.reddit.com/r/Entrepreneur/top/?t=week
+4. https://old.reddit.com/r/smallbusiness/top/?t=week
+5. https://old.reddit.com/r/sidehustle/top/?t=week
+6. https://old.reddit.com/r/AI_Agents/top/?t=week
+Then fetch the 2-4 most promising threads from each listing to get the OP text, top comments, and exact quotes.
 
-If site: searches return nothing, try without site: prefix.
-Extract: pain point description, user quotes (exact words), subreddit, upvotes, existing solutions status.
-Focus on last 7 days. Include source URLs.`,
+Supplement (optional): WebSearch site:reddit.com "I wish there was" AI tool ${year} — but any result you keep MUST be fetched and cited as the reddit.com thread URL itself.
+
+EXTRACTION RULES:
+- source_url MUST be a reddit.com/r/... thread URL. A blog summarizing "what Reddit thinks" is NOT acceptable as a Reddit signal.
+- Extract: pain point description, user quotes (exact words), subreddit, upvotes, existing solutions status.
+- source_date = thread post date (visible on the thread page).
+
+${DATE_RULES}`,
   },
   {
     key: 'hackernews-stackoverflow',
     label: 'Hacker News + Stack Overflow',
     type: 'pain_point',
-    prompt: `Search for PAIN POINT and PRODUCT SIGNALS from Hacker News and Stack Overflow.
+    prompt: `Collect PAIN POINT and PRODUCT SIGNALS from Hacker News and Stack Overflow.
 
-Run these searches ONE AT A TIME:
-1. Hacker News "Show HN" AI most upvoted ${month} ${year}
-2. Hacker News "Ask HN" AI tool ${month} ${year}
-3. site:news.ycombinator.com AI agent ${month} ${year}
-4. site:stackoverflow.com "is there a tool" OR "looking for a library" AI ${year}
-5. site:stackoverflow.com AI automation "how to" frequently asked ${year}
+FETCH-FIRST: WebFetch DIRECTLY, one at a time:
+1. https://news.ycombinator.com/ — front page
+2. https://news.ycombinator.com/show — Show HN
+3. https://news.ycombinator.com/ask — Ask HN
+4. https://hn.algolia.com/?dateRange=pastWeek&type=story&query=AI — past-week AI stories by points (also try queries "agent", "LLM")
+5. https://stackoverflow.com/questions?tab=Frequent — frequent questions (also try tag pages like /questions/tagged/openai-api?tab=Frequent)
+Then fetch promising item pages (news.ycombinator.com/item?id=...) for point counts and top comments.
 
-Extract: post title, points, comments count, core pain point or product insight, user quotes.
-Stack Overflow: high-frequency repeated questions = productizable developer tool opportunity.
-Focus on last 7 days. Include item URLs.`,
+EXTRACTION RULES:
+- source_url = the news.ycombinator.com/item?id=... or stackoverflow.com/questions/... page itself.
+- Extract: post title, points, comments count, core pain point or product insight, user quotes.
+- Stack Overflow: high-frequency repeated questions = productizable developer tool opportunity.
+- source_date = post date shown on the item page.
+
+${DATE_RULES}`,
   },
   {
     key: 'indiehackers-substack',
     label: 'Indie Hackers + Substack',
     type: 'pain_point',
-    prompt: `Search for PAIN POINT and REVENUE signals from Indie Hackers and Substack.
+    prompt: `Collect PAIN POINT and REVENUE signals from Indie Hackers and Substack.
 
-Run these searches ONE AT A TIME:
-1. site:indiehackers.com "building" OR "launched" AI ${month} ${year}
-2. site:indiehackers.com "revenue" OR "MRR" AI ${year}
-3. site:indiehackers.com "problem" OR "pain point" SaaS ${month}
-4. site:substack.com AI startup opportunities ${month} ${year}
+FETCH-FIRST: WebFetch DIRECTLY, one at a time:
+1. https://www.indiehackers.com/ — front page trending posts
+2. https://www.indiehackers.com/products — products with revenue numbers
+3. https://substack.com/topics — topic index (follow into AI/tech/startup topics)
+4. https://substack.com/explore — explore page for trending publications
+Then fetch the most promising posts for full text and exact quotes.
 
-Extract: product name, MRR/revenue, pain point addressed, user quotes, lessons learned.
-Focus on last 7-30 days. Include source URLs.`,
+Supplement (optional): WebSearch site:indiehackers.com "MRR" AI ${month} ${year} — keep only results you actually fetched, cited by their indiehackers.com URL.
+
+EXTRACTION RULES:
+- Extract: product name, MRR/revenue, pain point addressed, user quotes, lessons learned.
+- source_date = post publish date.
+
+${DATE_RULES}`,
   },
   {
     key: 'twitter-reviews-youtube-discord',
     label: 'Twitter/X + Reviews + YouTube + Discord',
     type: 'pain_point',
-    prompt: `Search for PAIN POINT SIGNALS from Twitter/X, review platforms, YouTube, and community forums.
+    prompt: `Collect PAIN POINT SIGNALS from Twitter/X, review platforms, YouTube, and Discord communities.
 
-Run these searches ONE AT A TIME:
-1. "AI tool" "wish" OR "need" OR "looking for" ${year}
-2. "switched from" OR "alternative to" AI tool ${month} ${year}
-3. site:g2.com AI tool reviews "cons" ${year}
-4. YouTube AI tool tutorial most viewed ${month} ${year}
-5. discord AI tool community "feature request" OR "wish" ${year}
+PLATFORM RULES — a signal attributed to a platform MUST cite that platform's own URL:
+- Twitter/X signals MUST cite x.com (or twitter.com) status URLs.
+- YouTube signals MUST cite youtube.com video URLs (views/comments read from the video page).
+- Discord signals MUST cite discord.com channel/message links or the community's official server; if a community is only reachable via login, cite the product's public feedback board instead and say so.
+- G2/Capterra/app-store reviews MUST cite the review page itself.
 
-Extract: complaint description, user quotes, which tools they're leaving and why, audience size estimate.
-YouTube: high-view tutorials = demand scale; comment complaints = real pain points.
-Discord/Slack: feature requests and workarounds in AI tool communities = product improvement gaps.
-Focus on last 7 days. Include source URLs.`,
+These platforms are search-unfriendly for direct fetch; use WebSearch to LOCATE, then WebFetch the platform URL to VERIFY before citing:
+1. site:x.com "AI tool" wish OR need ${year}
+2. site:youtube.com AI tool review OR tutorial ${month} ${year}
+3. site:g2.com AI reviews cons ${year}
+4. "discord.gg" OR site:discord.com AI tool "feature request" ${year}
+5. "switched from" OR "alternative to" AI tool ${month} ${year}
+
+If a platform URL cannot be verified by fetching, DROP the signal rather than citing a blog that talks about it (or keep it with secondhand: true and the blog URL, clearly labeled).
+
+Extract: complaint description, user quotes, which tools they're leaving and why, view/upvote counts, audience size estimate.
+
+${DATE_RULES}`,
   },
   {
     key: 'github-huggingface-baai',
     label: 'GitHub Trending + HuggingFace + 智源社区',
     type: 'trend',
-    prompt: `Search for INDUSTRY TREND SIGNALS from GitHub, Hugging Face, and BAAI Hub (智源社区).
+    prompt: `Collect INDUSTRY TREND SIGNALS from GitHub, Hugging Face, and BAAI Hub (智源社区).
 
-Run these searches ONE AT A TIME:
-1. GitHub trending repositories AI ${month} ${year}
-2. github.com/trending AI machine-learning ${month}
-3. Hugging Face most downloaded model ${month} ${year}
-4. Hugging Face new dataset trending ${month} ${year}
-5. site:hub.baai.ac.cn AI 热门论文 OR 热门项目 ${month} ${year}
+FETCH-FIRST: WebFetch DIRECTLY, one at a time:
+1. https://github.com/trending — daily trending (all languages)
+2. https://github.com/trending?since=weekly — weekly trending
+3. https://huggingface.co/models — models sorted by trending (also https://huggingface.co/models?sort=downloads)
+4. https://huggingface.co/datasets — trending datasets
+5. https://hub.baai.ac.cn/ — 智源社区首页热门论文/项目
+Then fetch notable repo/model pages for star/download counts and READMEs.
 
-Extract: repo/model name, stars/downloads, what problem it solves, growth velocity, implications for product builders.
-智源社区: Chinese AI academic frontier, new papers/projects → technology capability breakthrough signals.
-Focus on last 7 days. Include source URLs.`,
+EXTRACTION RULES:
+- source_url = the github.com repo / huggingface.co model page itself. Star/download counts are as-of fetched_at — never date them with a content date.
+- Extract: repo/model name, stars/downloads, what problem it solves, growth velocity (stars this week if shown on trending), implications for product builders.
+- 智源社区: Chinese AI academic frontier, new papers/projects → technology capability breakthrough signals.
+
+${DATE_RULES}`,
   },
   {
     key: 'funding-vc-yc-blogs-podcasts',
     label: 'Funding + VC + YC + Blogs + Podcasts',
     type: 'trend',
-    prompt: `Search for FUNDING, INVESTOR, and THOUGHT LEADER signals.
+    prompt: `Collect FUNDING, INVESTOR, and THOUGHT LEADER signals.
 
-Run these searches ONE AT A TIME:
-1. AI startup funding ${month} ${year} seed series-a
-2. site:techcrunch.com AI startup raised funding ${month} ${year}
-3. "Y Combinator" batch AI startup ${month} ${year}
-4. a16z OR Sequoia AI investment ${month} ${year}
-5. site:a16z.com/blog AI ${month} ${year}
+FETCH-FIRST where possible:
+1. https://techcrunch.com/category/artificial-intelligence/ — AI funding news
+2. https://news.crunchbase.com/sections/ai/ — Crunchbase AI section
+3. https://www.ycombinator.com/companies?batch=Summer%202026 — current YC batch (adjust batch name to the most recent)
+4. https://a16z.com/news-content/ — a16z posts
+Supplement with WebSearch ONE AT A TIME:
+5. AI startup funding ${month} ${year} seed series-a
 6. "My First Million" OR "All-In Podcast" OR "Acquired" AI ${month} ${year}
 
-Extract: company name, round size, investors, what they're building, implications for the market.
-Blogs (a16z, Paul Graham, Lenny's Newsletter, Stratechery, Not Boring): top investor/founder deep thinking → trend judgment + framework insights.
-Podcasts (Acquired, All-In, My First Million, 20VC, 硅谷101): founder/investor conversations → track insights, pain point discussions.
-Focus on last 30 days. Include source URLs.`,
+EXTRACTION RULES:
+- Funding numbers must cite the original news article (TechCrunch/Crunchbase/官方公告), not aggregator roundups — if only a roundup is available, secondhand: true.
+- Extract: company name, round size, investors, what they're building, implications for the market.
+- source_date = article publish date.
+
+${DATE_RULES}`,
   },
   {
     key: 'arxiv-regulation-breakthrough-trends-luma',
     label: 'arXiv + Regulations + Breakthroughs + Google Trends + Luma',
     type: 'trend',
-    prompt: `Search for FRONTIER RESEARCH, REGULATORY, and QUANTITATIVE DEMAND signals.
+    prompt: `Collect FRONTIER RESEARCH, REGULATORY, and QUANTITATIVE DEMAND signals.
 
-Run these searches ONE AT A TIME:
-1. AI breakthrough new capability ${month} ${year}
-2. new regulation AI ${year} ${month} compliance
-3. site:arxiv.org AI agent framework ${month} ${year}
-4. new AI API feature announcement ${month} ${year}
-5. site:lu.ma AI event ${month} ${year}
+FETCH-FIRST where possible:
+1. https://arxiv.org/list/cs.AI/recent — recent cs.AI listings (also cs.CL, cs.LG for agent/LLM application papers)
+2. https://lu.ma/ai — Luma AI events (themes, attendance)
+3. Regulator sites for anything new: digital-strategy.ec.europa.eu (EU), cac.gov.cn (网信办), whitehouse.gov
+Supplement with WebSearch ONE AT A TIME:
+4. AI breakthrough new capability ${month} ${year}
+5. new regulation AI ${month} ${year} compliance
+6. new AI API feature announcement ${month} ${year}
 
-Extract: breakthrough/regulation description, time horizon (immediate/6-12mo/1-2yr), product implications.
-Google Trends: use WebFetch on trends.google.com to check search volume for top opportunity keywords — the only quantitative demand validation signal.
-Luma: AI/Tech event themes and participant counts → industry hotspot indicator.
-Focus on last 30 days. Include source URLs.`,
+EXTRACTION RULES:
+- arXiv papers: source_url = arxiv.org/abs/... page; source_date = submission date on that page.
+- Regulations: cite the regulator's own page as primary; law-firm analyses are useful context but secondhand: true.
+- Google Trends: use WebFetch on trends.google.com to check search volume for top opportunity keywords — the only quantitative demand validation signal.
+- Extract: breakthrough/regulation description, time horizon (immediate/6-12mo/1-2yr), product implications.
+
+${DATE_RULES}`,
   },
   {
     key: 'zhihu-jike-v2ex-sspai-xiaohongshu',
@@ -407,11 +471,11 @@ const signals = await parallel(
 ${g.prompt}
 
 IMPORTANT RULES:
-- Run searches ONE AT A TIME to avoid rate limits. Wait for each to complete before starting the next.
-- Use WebSearch for searching, WebFetch for extracting content from promising pages.
-- For each finding, extract structured data: title, source_url, source_date, signal_type ("${g.type}"), description, user_quote (exact words if available), metrics, ai_opportunity, secondhand, primary_platform.
+- FETCH-FIRST: when the group prompt lists direct URLs, WebFetch them before any WebSearch. Run fetches/searches ONE AT A TIME to avoid rate limits.
+- Use WebSearch only to locate content the direct pages don't surface, then WebFetch the primary page to verify before citing.
+- For each finding, extract structured data: title, source_url, source_date (original content date), fetched_at (today: ${today}), signal_type ("${g.type}"), description, user_quote (exact words if available), metrics, ai_opportunity, secondhand, primary_platform.
 - Return at least 5 signals if available, up to 15.
-- If a search returns no results, try alternative queries without site: prefix.
+- If a fetch fails (blocked/empty), retry once with an alternative URL from the prompt, then fall back to search.
 
 SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of signals cited SEO aggregators instead of primary sources):
 - KEY QUANTITATIVE DATA (download counts, GitHub stars, survey percentages, revenue/MRR, vote counts) MUST cite the PRIMARY platform URL: github.com, clawhub.ai, producthunt.com, reddit.com, news.ycombinator.com, survey.stackoverflow.co, official company blogs/press releases, regulator sites.
@@ -419,7 +483,9 @@ SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of sig
 - Community pain points (Reddit/HN/V2EX/知乎) MUST link the actual thread. A blog post summarizing "what Reddit thinks" is secondhand: true — the numbers and quotes in it are unverified.
 - Watch for conflict-of-interest sources: vendor marketing blogs, API resellers, "pain point database" products citing their own data. Always mark these secondhand: true and mention the bias in description.
 - Never fabricate or "smooth over" a URL. If you did not see the page, do not cite it.
-- secondhand: false is a claim that source_url IS the primary source (original thread / official page / first-party report). Set it honestly — downstream analysis discounts secondhand-only evidence.`,
+- secondhand: false is a claim that source_url IS the primary source (original thread / official page / first-party report). Set it honestly — downstream analysis discounts secondhand-only evidence.
+- DATES: source_date is the content's original date (post/launch/publish), NEVER your visit date and NEVER a month-start placeholder; put your visit date in fetched_at. Leaderboard-ranking snapshots: source_date empty, fetched_at carries the timeliness.
+- COMPLETENESS: when reading a ranked leaderboard, capture ranks contiguously from #1 (do not skip ranks you find boring — a skipped rank is a hole reviewers will find).`,
       {
         label: g.label,
         phase: 'Signal Collection',
@@ -532,7 +598,12 @@ The report MUST follow this template structure:
 - Appearance count ≥3 → mark "⭐ 值得深入研究"
 - Keep existing manually-marked statuses
 
-Write both files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.
+5. **Archive raw signals** to reports/${today.slice(0, 10) || month}/sources/:
+- One file per signal group, numbered by agent order STARTING FROM 01 (01 = 热点雷达 hot-topic radar output, 02+ = signal groups in order). No gaps in numbering.
+- Each file: group name, per-signal title/type/source_url/source_date/fetched_at/secondhand/description.
+- Plus a README.md index: file list with signal counts, and a domain-frequency table flagging domains cited across multiple groups (dedup review) and secondhand ratios per group.
+
+Write all files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.
 
 SOURCE ANNOTATION RULE: signals with secondhand: true are unverified paraphrases — when citing their numbers in the report, append「（二手转述，未经一手核实）」after the figure, and never let a secondhand-only number be the headline evidence for a Top 3 opportunity. In 今日概览, report the count of secondhand signals alongside total signals.`,
   {

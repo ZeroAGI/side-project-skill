@@ -474,12 +474,42 @@ AI 技术突破:
 
 ## 搜索与抓取规范
 
-1. **使用 WebSearch 进行搜索**，每组关键词取 Top 5-10 结果
-2. **使用 WebFetch 抓取关键页面**，提取用户原话和数据
-3. **时效过滤**：优先最近 7 天内容，最多不超过 30 天
-4. **去重**：同一产品/痛点出现在多个渠道只记录一次，但标注多渠道验证
-5. **引用格式**：`[标题](url) · YYYY-MM-DD`
-6. **信源溯源（硬规则，2026-07-21 审计后新增）**：关键定量数据（下载量/星数/调查百分比/营收/票数）**必须引用一手平台 URL**（github.com、clawhub.ai、producthunt.com、reddit.com 原帖、survey.stackoverflow.co、官方博客/公告、监管机构官网）。搜索命中 SEO 聚合站/榜单博客时，须 WebFetch 回溯其引用的原始页面并改引一手 URL；确实找不到一手来源的，标注 `secondhand: true`（二手转述），报告引用时注明「二手转述，未经一手核实」。社区痛点（Reddit/HN/V2EX/知乎）必须链接实际帖子——博客对社区的转述一律算二手。警惕利益相关信源（厂商营销博客、API 中转商、自营「痛点数据库」产品），一律标二手并在描述中注明立场。交叉验证只在**底层一手来源不同**时才算独立——三篇博客转述同一份调查 = 1 个来源。二手孤证不得作为 Top 3 机会的头条证据。当日审计背景：197 条信号中 38% 引自二手域名，Reddit 组 15 条信号 0 条 reddit.com 直链。
+1. **一手 endpoint 直采优先（2026-07-21 审计后新增硬规则）**：有公开榜单/浏览页的平台**必须先 WebFetch 直采，禁止用 WebSearch 找"什么在流行"的转述**。各渠道直采 endpoint：
+
+   | 渠道 | 直采 URL（WebFetch） |
+   |------|---------------------|
+   | Product Hunt | `producthunt.com/leaderboard/monthly/{YYYY}/{M}`、`producthunt.com/leaderboard/daily/{YYYY}/{M}/{D}`（月/日为非补零数字） |
+   | AppSumo | `appsumo.com/browse/`、`appsumo.com/collections/trending-ai/` |
+   | ClawHub | `clawhub.ai/` 首页的 Featured / Top / Trending 区块 |
+   | Upwork | `upwork.com/freelance-jobs/` 及 AI 相关子类目 |
+   | Fiverr | `fiverr.com/categories/trending` |
+   | Gumroad | `gumroad.com/discover` |
+   | Zapier | `zapier.com/apps` |
+   | Make | `make.com/en/integrations` |
+   | Kickstarter | `kickstarter.com/discover`（Technology 类目） |
+   | Shopify App Store | `apps.shopify.com/` |
+   | Chrome Web Store | `chromewebstore.google.com/` |
+   | Udemy | `udemy.com/featured-topics/` |
+   | Reddit | `old.reddit.com/r/{sub}/top/?t=week`（SaaS/startups/Entrepreneur/smallbusiness/sidehustle/AI_Agents 等），再进帖子拿原话 |
+   | Hacker News | `news.ycombinator.com/`、`/show`、`/ask`、`hn.algolia.com`（pastWeek 排序） |
+   | Stack Overflow | `stackoverflow.com/questions?tab=Frequent` 及相关 tag 页 |
+   | Indie Hackers | `indiehackers.com/`、`indiehackers.com/products` |
+   | Substack | `substack.com/topics`、`substack.com/explore` |
+   | GitHub | `github.com/trending`、`github.com/trending?since=weekly` |
+   | Hugging Face | `huggingface.co/models`、`huggingface.co/datasets`（trending/downloads 排序） |
+   | arXiv | `arxiv.org/list/cs.AI/recent`（及 cs.CL/cs.LG） |
+   | 智源社区 | `hub.baai.ac.cn/` |
+   | Luma | `lu.ma/ai` |
+
+   直采失败（被墙/空响应）才允许退回 WebSearch，且检索结果须回抓平台原页验证后引用。
+2. **平台归属铁律**：归属某平台的信号必须引用该平台自己的 URL——Twitter/X 信号必须引 `x.com`、YouTube 必须引 `youtube.com`、Discord 必须引 `discord.com`、Reddit 必须引 `reddit.com` 帖子。无法验证平台原链的信号宁可丢弃，不得以谈论它的博客顶替（或明确标注 `secondhand: true`）。
+3. **日期语义（硬规则）**：`source_date` = 内容原始日期（发帖日/产品上线日/发布日），**绝不是访问日期，绝不用月初占位**（2026-07-21 审计：PH 组全部信号被错填为当月 1 日）；访问日期记入 `fetched_at`。榜单快照类信号（"本月 Top10"）没有单一内容日期——`source_date` 留空、时效由 `fetched_at` 表达；榜单上单个产品的 `source_date` 是其上线日（产品页可见时）。累积性指标（Shopify 评论数、GitHub 星数）按 `fetched_at` 时点理解，不得配新鲜日期。
+4. **榜单完整性**：读排行榜必须从 #1 连续采集（目标 Top 10），不得跳位挑选——跳掉的名次就是审查时的漏洞（2026-07-21 审计：PH Top 10 缺 #3、#5-6、#8-9）。
+5. **时效过滤**：优先最近 7 天内容，最多不超过 30 天
+6. **去重**：同一产品/痛点出现在多个渠道只记录一次，但标注多渠道验证
+7. **引用格式**：`[标题](url) · YYYY-MM-DD`（日期为 source_date；无 source_date 的榜单快照标 `· 抓取于 YYYY-MM-DD`）
+8. **信源溯源（硬规则，2026-07-21 审计后新增）**：关键定量数据（下载量/星数/调查百分比/营收/票数）**必须引用一手平台 URL**（github.com、clawhub.ai、producthunt.com、reddit.com 原帖、survey.stackoverflow.co、官方博客/公告、监管机构官网）。搜索命中 SEO 聚合站/榜单博客时，须 WebFetch 回溯其引用的原始页面并改引一手 URL；确实找不到一手来源的，标注 `secondhand: true`（二手转述），报告引用时注明「二手转述，未经一手核实」。社区痛点（Reddit/HN/V2EX/知乎）必须链接实际帖子——博客对社区的转述一律算二手。警惕利益相关信源（厂商营销博客、API 中转商、自营「痛点数据库」产品），一律标二手并在描述中注明立场。交叉验证只在**底层一手来源不同**时才算独立——三篇博客转述同一份调查 = 1 个来源。二手孤证不得作为 Top 3 机会的头条证据。当日审计背景：197 条信号中 38% 引自二手域名，Reddit 组 15 条信号 0 条 reddit.com 直链。
+9. **原始信号存档**：每次运行将各组结构化输出存入 `reports/{date}/sources/`，编号从 01（热点雷达）起连续、一组一文件，附 README 索引（信号数、跨组域名频次、各组二手占比）——报告结论必须可回溯到原始证据。
 
 ## 执行频率
 
