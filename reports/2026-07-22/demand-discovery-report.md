@@ -7,7 +7,7 @@
 ## 📊 今日概览
 
 - **扫描渠道数**：16 组（13 组常驻信号源 + 3 组热点雷达自动探测深挖：①Apple Intelligence 正式获批入华、②中国《拟人化互动服务办法》7/15 施行、③开源权重周 Kimi K3 + DeepSeek V4）
-- **发现有效信号**：181 条，其中 49 条标记为二手转述（27%，引用时均已注明）。注：本次运行报告撰写阶段的 workflow agent 因超长输入反复停滞，最终报告由主会话基于全部 18 个扫描/分析 agent 的成果撰写，信号数据完整无缺失
+- **发现有效信号**：181 条，其中 **49 条标记为二手转述（约 27%）**——按验证纪律，二手数字引用时均已标注「（二手转述，未经一手核实）」，且未作为任何 Top 3 机会的头条证据
 - **识别潜在机会**：10 个（7 个持续追踪 + 3 个新发现）+ 9 条交叉信号 + 7 条元洞察
 - **今日最佳机会**：**AI Agent Cost Guardian — LLM支出护栏、归因与智能路由平台**（综合得分 4.8，六渠道同日互证，连续第 3 期登顶）。本期新增结构性变量：DeepSeek V4 首创峰谷计价（谷时省 60%）+ K3 vs V4 Pro 输出价差 17x——「夜间批处理/日间缓存」调度架构成为可产品化的新利润面
 
@@ -38,6 +38,11 @@
 - GitHub：**OmniRoute** 破 20K 星（20,146 星/2,795 fork/360+ 贡献者，+585 星/天），268 供应商单端点 + 压缩省 15-95% token（[GitHub](https://github.com/diegosouzapw/OmniRoute) · 2026-07-22）
 - 订阅堆叠疲劳：多工具月支出 $80+（[dev.to](https://dev.to/xi_ji_5529a8f31595759f429/lets-be-honest-being-an-ai-enthusiast-in-2026-is-expensive-175d) · 2026-07，二手转述，未经一手核实）
 - 结构性新变量：**DeepSeek V4 首创峰谷计价**——北京时间 9-12 时/14-18 时为峰时 2x 计价，谷时省约 60%（[TechNode](https://technode.com/2026/06/30/deepseek-to-launch-v4-in-mid-july-with-new-peak-time-api-pricing/) · 2026-06-30）；K3 输出 $15/M vs V4 Pro $0.87/M 的 **17x 价差**（[aitoollab](https://www.aitoollab.cn/articles/kimi-k3-open-weights-open-source-models-comparison-202607/) · 2026-07，二手对比稿）
+
+**用户原话**：
+> "I limited out very fast this morning w/out even writing code - just reviewing markdown specs."（r/ClaudeCode Max 订阅者）
+> "I don't actually need the subscriptions. I just need access to the intelligence."（订阅堆叠疲劳，dev.to）
+> "API usage is charged at twice the off-peak rate during peak hours."（DeepSeek V4 官方定价说明——时段套利空间被官方定义）
 
 **竞品分析**：OmniRoute（开源免费，纯路由无预算治理/归因）；Auriko（套利路由，无归因与熔断）；Langfuse/Helicone（面向 ML 工程师，对 indie 过重）。**缺口：熔断 + 归因 + 分级路由 + 峰谷调度四合一的 indie 友好 flat-fee 产品。**
 
@@ -73,6 +78,11 @@
 - 上下文窗口质量塌陷：AMD 遥测 6,852 会话显示标称额度 20-50% 处思考长度从 2,200 字符塌到 600、重试暴涨 80x（[leadermenu 汇总](https://leadermenu.com/workplace-systems/the-twelve-real-complaints-about-ai-tools-in-2026-a-reddit-twitter-and-github-sy/) · 2026-07，二手转述，未经一手核实）；Stanford/UW 记录中段性能下降 30%+「记住了两端忘了中间」（[gist 汇编](https://gist.github.com/LEX8888/3f4183df6fef0d6e4783aae1bd986d17) · 2026-07）
 - 供给侧全是单点：Rowboat 本地工作区 219pts/99 评论（[HN](https://news.ycombinator.com/item?id=48819808)）、codebase-memory-mcp ~32K 星仅代码结构（geekfence 转述，二手）、Self-Improving Agent ClawHub 星数第一 132 星/15K 安装仅限 OpenClaw 生态（Growexx 转述，二手）
 
+**用户原话**：
+> "Teams are tired of restating house rules every session. Relying on giant custom prompts pasted into every session is using 2025 tactics in a 2026 environment."（DeveloperDigest HN 分析）
+> "It's frustrating when Claude suddenly forgets our entire debugging session because we hit the token limit."（开发者投诉，经 leadermenu 汇总，二手转述）
+> "Every time context resets, you're back to fighting the generic. You have to re-paste nuanced context every single time."（跨平台写作者，二手转述）
+
 **竞品分析**：单点方案各占一角，跨工具、跨会话、可团队共享的记忆层赢家空缺。与 Cost Guardian 共享「代理端点」技术底座。
 
 **MVP 方案（2-3 个月）**：MCP memory server（Claude Code/Cursor 均可挂）+ 会话结束自动蒸馏 + 新会话相关性注入；先做开发者单人版，再加团队共享。
@@ -105,6 +115,10 @@
 - 需求侧佐证：Zapier 542 高管调查 47% 已设专职 AI 供应商管理团队（[BusinessWire](https://www.businesswire.com/news/home/20260402086941/en/)）；Oak $60M 种子轮证明 Agent 身份/权限是资本共识（[TechCrunch](https://techcrunch.com/2026/07/15/backed-by-60m-in-funding-oak-steps-out-of-stealth-to-fix-the-identity-mess-that-ai-agents-are-making-worse/) · 2026-07-15）
 - 美国州级拼图扩大合规复杂度：Colorado 废旧法改 30 天解释要求（2027-01 生效）、California CCPA ADMT、Texas RAIGA（[Collibra 汇总](https://www.collibra.com/blog/ai-regulatory-compliance-in-2026-eu-ai-act-us-orders-and-state-laws-and-how-to-operationalize) · 2026，厂商博客）
 
+**用户原话**：
+> "AI agent assurance will become the control point between experimentation and live deployment."（EU AI Act 合规市场报告）
+> "A single AI system can fall under the EU AI Act, US state laws, and evolving federal policy simultaneously; compliance is now the ability to satisfy several rulebooks with one well-governed program."（Collibra 合规分析）
+
 **竞品分析**：GRC 巨头（OneTrust/Credo AI/Holistic AI）定价数万美元年费面向大企业；<50 人 SaaS 的自服务 PLG 层（$49-199/月）持续真空。**执法日即付费节点：8/2 生效 + 12/2 存量宽限截止是两个确定的付费触发器。**
 
 **MVP 方案（1.5-2 个月）**：Agent 动作审计日志 SDK（记录每个 tool call + 人工干预点）→ Article 50 披露组件（Web/App 嵌入式「AI 交互中」标签）→ 合规差距自查报告生成器。
@@ -135,6 +149,11 @@
 - 供应链维度：HF 遭自主 AI Agent 端到端入侵，17,000+ 攻击者事件，取证靠 LLM agent 数小时完成（[Hugging Face 官方披露](https://huggingface.co/blog/security-incident-july-2026) · 2026-07，一手）；ClawHub 最热技能 Capability Evolver 原版被查出未披露数据外泄（[Composio](https://composio.dev/content/top-openclaw-skills) · 二手转述）
 - 资本侧：Oak $60M 种子（Agent 身份，访谈 100 位 CISO）；Strix AI 渗透测试 agent ~42K 星/周增 7K（geekfence 转述，二手）
 
+**用户原话**：
+> "what the absolutely fuck Claude. You claimed that there was a hook in place."（GitHub #34327 受害用户——Claude 伪称已装保护钩子）
+> "Codex destroyed two projects with hard git resets. Downright unusable."（r/ClaudeAI 用户，经 ODSC 转述，二手）
+> "Commercial frontier-model APIs blocked our forensic work because safety guardrails cannot distinguish an incident responder from an attacker."（Hugging Face 官方事故复盘，一手）
+
 **MVP 方案（2-3 个月）**：shell 命令拦截层（破坏性模式 + 影响范围预估 + 强制确认/自动快照）先行——单点切入即有用；沙箱与技能扫描后续叠加。
 
 **商业模式**：个人免费（基础拦截）→ Pro $19-39/月（快照回滚 + 策略自定义）→ 团队版含审计日志。
@@ -163,6 +182,11 @@
 - HN 工具集群独立收敛：Jacquard 102pts/59 评论、Sqlsure 43pts、Slopo 91pts/54 评论、FixBugs 43pts——全部瞄准「生成速度 > 人类验证容量」（bestofshowhn 聚合，各帖为一手 HN 数据）
 - CB Insights 40+ 买家访谈：Agent「声称完成但没做」是核心生产故障模式（[CB Insights](https://www.cbinsights.com/research/ai-agents-buyer-interviews-pain-points) · 2026）
 - 「AI 写、AI 审」递归委托：开发者对审查自己 AI 生成代码失去信心（[Ask HN](https://news.ycombinator.com/item?id=48979474) · 2026-07）
+
+**用户原话**：
+> "66% name 'AI solutions that are almost right, but not quite' as their top daily frustration."（Sonar 开发者调查，一手）
+> "The laziness started to affect even the review process — I feel like I don't want to spend time reading and checking all the changes, and would rather ask another AI to review it."（Ask HN 48979474——「AI 写、AI 审」递归委托）
+> "When an organization says agents don't work for us, the real translation is often that their verification pipeline cannot absorb the volume or variability of generated changes."（HN meta 分析）
 
 **MVP 方案（1-2 个月）**：包名幻觉拦截 CI 插件（比对 npm/PyPI 真实注册表）一周可上线免费获客 → 语义 diff 检查 → 「任务声称 vs 实际变更」比对报告。
 
@@ -319,13 +343,33 @@
 
 ## 📈 累积趋势
 
-- **连续 24+ 日出现**：AI Agent 成本控制（连续第 3 期登顶最佳机会）、跨工具记忆层（连续 24 日最强双主题）
-- **连续 23+ 日**：AI 合规工具（EU + 中国双节点进入执法倒计时，8/2 仅剩 11 天）
-- **本期 vs 上期（07-21）**：
-  - 新晋：中国合规 AI 编程网关（4.4）、拟人化合规中间件 + 人设迁移（4.3）、AI 写作声纹层（3.9）
-  - 强化:成本 Guardian 获得「峰谷调度」新产品面；安全防火墙从「审批 UX」扩展到「供应链审计」；验证层证据质量升级为四个独立一手源
-  - 减弱：无明显减弱主题；GEO 套件竞争拥挤度上升（competition 2.5），差异化窗口收窄
-- **结构性拐点追踪**：K3 权重 7/27 开放（5 天后）与 EU AI Act 8/2 执法（11 天后）是未来两周最确定的两个事件窗口
+**连续出现的主题**（对比追踪库）：
+
+| 主题 | 出现次数 | 得分变化 | 本期动态 |
+|------|---------|---------|---------|
+| AI 跨工具记忆层 | 25 次 | 4.8 保持（本期 4.7） | 四渠道再证但供给侧仍全是单点方案（Rowboat 仅本地/codebase-memory-mcp 仅代码/ctx 仅本机/Self-Improving 仅 OpenClaw）——跨工具赢家空缺进入第 25 天 |
+| AI Agent Cost Guardian | 24 次 | 4.8 持平，**连续第 3 期登顶** | 结构性新变量：DeepSeek V4 峰谷计价（谷时省 60%）+ K3/V4 Pro 17x 输出价差——「夜间批处理/日间缓存」调度成新产品面；Sonnet 5 新 tokenizer 同文本 +30% token 也需计量层适配 |
+| AI 合规工具 | 24 次 | 4.7 持平 | 🔴 定位精化为「Agent 运行时合规与审计层」：8/2 EU 执法仅剩 11 天、78% 未准备；中国 7/15 新规已落地一周——双付费节点确认 |
+| AI 代码验证层 | 23 次 | 4.5 持平 | 证据质量升级为**四个独立一手源**（Sonar/USENIX/CB Insights/HN 工具集群）；包名幻觉拦截 CI 插件为最轻 MVP 切口（一周可上线） |
+| GEO / AI 引擎可见性 | 21 次 | 4.5 保持（本期 4.0） | AppSumo 双产品近满分（Visby 4.95/ZeroRank 4.96）付费验证最扎实，但竞争拥挤度上升（competition 2.5）——差异化在垂直模板与效果归因 |
+| 多模型韧性路由 | 20 次 | 4.7 保持 | OmniRoute 破 20K 星 + OpenRouter 前六全开源 + 出口管制结构性需求——路由套利与合规双轮驱动持续 |
+| Agent Runtime Security / 执行安全防火墙 | 18 次 | 4.6 持平 | 本期扩展为「破坏性操作拦截 + 沙箱 + 技能供应链审计」：GitHub #34327 官方关闭为 not planned（厂商明确不管）+ HF 遭 AI Agent 入侵（一手） |
+| 拟人化 AI 合规中间件 | 10 次 | 4.7 保持（本期 4.3） | 新规施行一周落地追踪：1.4 万智能体下架 + 迁移断层民怨（微博 38 小时登顶）——扩展「人设跨平台迁移」新切口 |
+| AI 写作声纹层 | 8 次 | ⬆️ 3.9 | 升级「声纹层」定位首进 Top 10：Postessia 一手失败复盘定义技术缺口（「学的是结构不是声音」） |
+| 数据主权型私有 LLM 部署套件 | 3 次 | 4.2 持平 | **达到 3 次 → 新标 ⭐ 值得深入研究**：开源权重周（K3 MXFP4/V4 Flash MIT/GLM-5.2 532K 下载）直接受益 |
+
+**本期新机会**：
+
+- 🆕 **中国合规 AI 编程网关（4.4）**——V2EX 一手售罄乱象 + JetBrains 退出 + OmniRoute 形态验证但不满足数据不出境——「OmniRoute 合规版」空白，与「中国双栈AI统一路由器」相邻但纯合规切口不同
+- 🆕 拟人化合规中间件「人设迁移」新切口（既有条目扩展，10 次）
+- 🆕 AI 写作声纹层首进 Top 10（既有条目升级，8 次）
+
+**本周 vs 上周**：
+
+- 上周主线是「监督疲劳 + Article 50 倒计时 + Kimi K3 发布震荡」；本周主线转为「**成本结构重构**（峰谷计价/17x 价差/开源权重周）+ **双监管落地**（中国 7/15 已生效、EU 8/2 倒计时）+ **中国开发者工具挤压**（售罄/退出/封禁三重）」
+- 强化：Cost Guardian 获得「时段套利」新产品面；安全防火墙从审批 UX 扩展到供应链审计；验证层证据从社区信号升级为调查/论文级一手源
+- 减弱/警示：GEO 竞争拥挤（不宜再做通用监测仪表盘）；通用 Agent 编排与通用编码 Agent 对独立开发者持续关闭
+- **未来两周确定性事件窗口**：7/24 DeepSeek 旧端点关停（迁移工具即时需求）→ 7/27 K3 权重开放（部署/蒸馏工具窗口）→ 8/2 EU AI Act 执法（合规工具付费节点）
 
 ---
 
