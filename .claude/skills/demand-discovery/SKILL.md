@@ -24,7 +24,7 @@ user_invocable: true
 
 | 渠道                                  | 搜什么                                  | 要提取的信息                                                 |
 | ------------------------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| **Product Hunt**                | 最近 7 天上线的 AI 产品                 | 产品名、解决什么问题、投票数、评论热度                       |
+| **Product Hunt**                | 日榜/周榜/月榜/年榜各前 5 + 头部产品 review 区 | 四档榜单对比看趋势变化（日榜昙花 vs 年榜常青）；review 里的好评=已验证价值、差评=可攻击的改进缺口 |
 | **AppSumo**                     | 热卖的 SaaS deals                       | 品类、价格、销量、用户评价                                   |
 | **Upwork / Fiverr**             | 被重复购买的 AI 相关服务                | 服务类型、价格区间、购买频次 → 可产品化信号                 |
 | **Chrome Web Store**            | 近期高增长扩展                          | 功能、用户数增速、差评里的痛点                               |
@@ -40,7 +40,7 @@ user_invocable: true
 
 | 渠道                           | 搜什么                                                     | 要提取的信息                                                     |
 | ------------------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Reddit**               | r/SaaS, r/startups, r/Entrepreneur, r/smallbusiness 的热帖 | 「I wish...」「frustrated with...」「anyone know a tool for...」 |
+| **Reddit**               | r/SaaS, r/startups, r/Entrepreneur, r/smallbusiness, r/sidehustle, r/indiehackers, r/B2BSaaS + AI 侧 r/AI_Agents, r/ClaudeAI, r/LocalLLaMA, r/ChatGPTPro, r/cursor, r/artificial；每个 sub 进 3-5 个高 upvote 帖读 OP + 高赞评论 | 「I wish...」「frustrated with...」「anyone know a tool for...」；评论区的 workaround、"+1 same problem"、"I'd pay for this" |
 | **Twitter/X**            | AI 工具吐槽、workflow 自动化需求                           | 高互动的吐槽帖、求推荐帖                                         |
 | **Hacker News**          | Show HN + Ask HN 近期热帖                                  | 什么问题引发大量讨论                                             |
 | **Indie Hackers**        | Building in public、revenue milestones、idea validation 帖 | 独立开发者在做什么、验证了什么、踩了什么坑                       |
@@ -59,8 +59,8 @@ user_invocable: true
 | 渠道                                | 搜什么                                                                                                                           | 要提取的信息                                                                                                       |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Google Trends**             | 关键词搜索趋势、地域分布                                                                                                         | 需求是涨是跌、季节性、哪些地区最强 → 唯一的定量需求验证信号                                                       |
-| **GitHub Trending**           | 每日/每周热门仓库（AI/ML/Tools 相关）                                                                                            | 星标增速、项目品类、解决什么问题 → 开发者在造什么 = 技术方向信号                                                  |
-| **Hugging Face Models**       | 近期热门/新发布模型                                                                                                              | 模型能力、下载量、应用场景 → 新模型 = 新能力 = 新产品可能                                                         |
+| **GitHub Trending**           | 每日/每周热门仓库（AI/ML/Tools 相关）+ 头部仓库高 reaction/高评论 issue                                                           | 星标增速、项目品类、解决什么问题 → 开发者在造什么 = 技术方向信号；高赞 issue = 功能缺口需求，被维护者关成 "not planned" 的 issue = 官方放弃的需求 = 第三方机会 |
+| **Hugging Face Models**       | 近期热门/新发布模型 + 热门模型 Community 讨论区                                                                                  | 模型能力、下载量、应用场景 → 新模型 = 新能力 = 新产品可能；Community 里反复出现的部署难/量化请求/license 疑问 = 工具化机会          |
 | **Hugging Face Datasets**     | 近期热门/新上传数据集                                                                                                            | 数据领域、下载量、标注类型 → 什么数据被关注 = 什么问题值得解决                                                    |
 | **Luma 活动**                 | AI/Tech 领域线上线下活动                                                                                                         | 活动主题、参与人数、讨论热点 → 行业热点风向标                                                                     |
 | **行业大会 / 重大发布会**     | WAIC、Google I/O、WWDC、Build、re:Invent、云栖大会、智源大会等旗舰活动（常驻通用查询；具体事件由热点雷达自动探测，无需手动加词） | 头条发布（新模型/API/产品/政策）、厂商战略转向、参会规模 → 几天内密集重置竞争格局，对独立开发者开启或关闭机会窗口 |
@@ -88,7 +88,7 @@ Workflow({ name: "demand-discovery", args: { date: "2026-07-20" } })
 Workflow 完成后会自动：
 
 1. **热点雷达（Phase 0）**：先扫描最近 72h 中英文媒体头条（机器之心/量子位/36kr/TechCrunch/HN 等），自动探测重大事件（旗舰大会、重磅发布、新规、病毒式事件），动态生成 0-4 组深挖查询——**无需为 WAIC/发布会这类事件手动往本文件添加搜索关键词**，下方关键词列表只定义常驻信号渠道
-2. 在 13 个常驻信号源组 + 动态热点组中并行扫描（受控并发，不超过 RPM 限制）
+2. 在 15 个常驻信号源组 + 动态热点组中并行扫描（受控并发，不超过 RPM 限制）
 3. 交叉分析所有信号，识别多渠道验证的高价值模式
 4. 撰写完整报告并更新累积机会库
 
@@ -115,9 +115,9 @@ Task Progress:
 
 ```
 Product Hunt:
-- "Product Hunt" AI tools launched this week {year} {month}
-- "Product Hunt" most upvoted AI {current_month}
-- site:producthunt.com AI SaaS {year}
+- 四档榜单直采（见「搜索与抓取规范」）：日榜/周榜/月榜/年榜各前 5，对比看品类在四档间的存续与新增
+- 头部产品（日榜/周榜前 3 及跨榜产品）进 producthunt.com/products/{slug}/reviews 读 review：好评=已验证价值，差评=改进缺口
+- 备用搜索："Product Hunt" most upvoted AI {current_month}
 
 AppSumo:
 - site:appsumo.com AI tools best selling {year}
@@ -186,12 +186,10 @@ ClawHub:
 
 ```
 Reddit:
+- 直采优先：商业侧 + AI 侧共 13 个 sub 的 top/?t=week 榜（清单见「搜索与抓取规范」），每 sub 进 3-5 个高 upvote 帖读 OP + 高赞评论
 - site:reddit.com "I wish there was" AI tool {year}
 - site:reddit.com "frustrated with" SaaS {year}
 - site:reddit.com "anyone know a tool" automation {year}
-- site:reddit.com/r/SaaS "idea" OR "built" {current_month}
-- site:reddit.com/r/startups "looking for" OR "need help" {current_month}
-- site:reddit.com/r/sidehustle {current_month}
 
 Hacker News:
 - site:news.ycombinator.com "Ask HN" AI tool {current_month}
@@ -276,12 +274,12 @@ Google Trends:
 - 关注地域分布：哪些国家/地区搜索量最高 → 优先市场选择
 
 GitHub Trending:
+- 直采 github.com/trending 与 ?since=weekly；头部 AI/agent/工具类仓库进 issue 区按 reactions/comments 排序读高赞 issue（功能缺口 + "not planned" 的官方弃单需求）
 - github trending repositories today {current_month} {year}
-- github.com/trending AI machine-learning {current_month}
 - GitHub trending "most starred" AI tool {current_month} {year}
 
 Hugging Face Models:
-- site:huggingface.co/models trending {current_month} {year}
+- 直采 huggingface.co/models（trending/downloads 排序）；热门模型进 Community 讨论区看反复出现的部署/量化/license 问题
 - Hugging Face new model release {current_month} {year}
 - "hugging face" most downloaded model {current_month} {year}
 
@@ -478,8 +476,8 @@ AI 技术突破:
 
    | 渠道 | 直采 URL（WebFetch） |
    |------|---------------------|
-   | Product Hunt | `producthunt.com/leaderboard/monthly/{YYYY}/{M}`、`producthunt.com/leaderboard/daily/{YYYY}/{M}/{D}`（月/日为非补零数字） |
-   | AppSumo | `appsumo.com/browse/`、`appsumo.com/collections/trending-ai/` |
+   | Product Hunt | 四档榜单：`producthunt.com/leaderboard/daily/{YYYY}/{M}/{D}`、`/weekly/{YYYY}/{ISO周数}`、`/monthly/{YYYY}/{M}`、`/yearly/{YYYY}`（月/日为非补零数字）；头部产品 review：`producthunt.com/products/{slug}/reviews` |
+   | AppSumo | `appsumo.com/browse/`、`appsumo.com/collections/trending-ai/`；头部 deal 进详情页读买家 review |
    | ClawHub | `clawhub.ai/` 首页的 Featured / Top / Trending 区块 |
    | Upwork | `upwork.com/freelance-jobs/` 及 AI 相关子类目 |
    | Fiverr | `fiverr.com/categories/trending` |
@@ -490,13 +488,13 @@ AI 技术突破:
    | Shopify App Store | `apps.shopify.com/` |
    | Chrome Web Store | `chromewebstore.google.com/` |
    | Udemy | `udemy.com/featured-topics/` |
-   | Reddit | `old.reddit.com/r/{sub}/top/?t=week`（SaaS/startups/Entrepreneur/smallbusiness/sidehustle/AI_Agents 等），再进帖子拿原话 |
+   | Reddit | `old.reddit.com/r/{sub}/top/?t=week`（商业侧 SaaS/startups/Entrepreneur/smallbusiness/sidehustle/indiehackers/B2BSaaS + AI 侧 AI_Agents/ClaudeAI/LocalLLaMA/ChatGPTPro/cursor/artificial），每 sub 进 3-5 个高 upvote 帖读 OP + 高赞评论 |
    | Hacker News | `news.ycombinator.com/`、`/show`、`/ask`、`hn.algolia.com`（pastWeek 排序） |
    | Stack Overflow | `stackoverflow.com/questions?tab=Frequent` 及相关 tag 页 |
    | Indie Hackers | `indiehackers.com/`、`indiehackers.com/products` |
    | Substack | `substack.com/topics`、`substack.com/explore` |
-   | GitHub | `github.com/trending`、`github.com/trending?since=weekly` |
-   | Hugging Face | `huggingface.co/models`、`huggingface.co/datasets`（trending/downloads 排序） |
+   | GitHub | `github.com/trending`、`github.com/trending?since=weekly`；头部仓库 issue 深挖：`github.com/{owner}/{repo}/issues?q=is:issue+sort:reactions-+1-desc` 及 `sort:comments-desc` |
+   | Hugging Face | `huggingface.co/models`、`huggingface.co/datasets`（trending/downloads 排序）；热门模型 Community：`huggingface.co/{org}/{model}/discussions` |
    | arXiv | `arxiv.org/list/cs.AI/recent`（及 cs.CL/cs.LG） |
    | 智源社区 | `hub.baai.ac.cn/` |
    | Luma | `lu.ma/ai` |
@@ -510,6 +508,7 @@ AI 技术突破:
 7. **引用格式**：`[标题](url) · YYYY-MM-DD`（日期为 source_date；无 source_date 的榜单快照标 `· 抓取于 YYYY-MM-DD`）
 8. **信源溯源（硬规则，2026-07-21 审计后新增）**：关键定量数据（下载量/星数/调查百分比/营收/票数）**必须引用一手平台 URL**（github.com、clawhub.ai、producthunt.com、reddit.com 原帖、survey.stackoverflow.co、官方博客/公告、监管机构官网）。搜索命中 SEO 聚合站/榜单博客时，须 WebFetch 回溯其引用的原始页面并改引一手 URL；确实找不到一手来源的，标注 `secondhand: true`（二手转述），报告引用时注明「二手转述，未经一手核实」。社区痛点（Reddit/HN/V2EX/知乎）必须链接实际帖子——博客对社区的转述一律算二手。警惕利益相关信源（厂商营销博客、API 中转商、自营「痛点数据库」产品），一律标二手并在描述中注明立场。交叉验证只在**底层一手来源不同**时才算独立——三篇博客转述同一份调查 = 1 个来源。二手孤证不得作为 Top 3 机会的头条证据。当日审计背景：197 条信号中 38% 引自二手域名，Reddit 组 15 条信号 0 条 reddit.com 直链。
 9. **原始信号存档**：每次运行将各组结构化输出存入 `reports/{date}/sources/`，编号从 01（热点雷达）起连续、一组一文件，附 README 索引（信号数、跨组域名频次、各组二手占比）——报告结论必须可回溯到原始证据。
+10. **用户原声深挖（2026-07-27 新增硬规则）**：榜单和标题只说明「什么在流行」，评论/review/回复/issue 才说明「为什么」和「还缺什么」。凡平台暴露评论区的信号源（PH review、HN 评论、Reddit 评论、AppSumo 买家 review、GitHub issue、YouTube 评论、推文回复、应用商店差评），**必须进入读区并摘录原话**——除 `user_quote` 外每条信号最多再存 3 条 `top_comments`（逐字引用并注明出处位置，如 "PH review" / "GitHub issue #123"）。一条带用户原声的信号比三条只有元数据的信号更有价值；报告 Top 5 机会必须各有用户原话块。
 
 ## 执行频率
 

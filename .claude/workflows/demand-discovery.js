@@ -1,10 +1,10 @@
 export const meta = {
   name: 'demand-discovery',
-  description: '每日需求发现：热点雷达 → 13 组信号源 + 动态热点组并行扫描 → 交叉分析 → 报告撰写',
+  description: '每日需求发现：热点雷达 → 15 组信号源 + 动态热点组并行扫描 → 交叉分析 → 报告撰写',
   whenToUse: '每日或每周执行一次，系统性发现可产品化的用户痛点和市场机会（必须传 args.date）',
   phases: [
     { title: 'Hot Topic Radar', detail: 'Detect breaking events from last-72h media and derive dynamic search queries' },
-    { title: 'Signal Collection', detail: '13 static groups + dynamic hot-topic groups pipelined for rate-limit safety' },
+    { title: 'Signal Collection', detail: '15 static groups + dynamic hot-topic groups pipelined for rate-limit safety' },
     { title: 'Cross-Analysis', detail: 'Identify cross-validated patterns and score opportunities' },
     { title: 'Report Writing', detail: 'Write daily report and update opportunity tracker' },
   ],
@@ -27,6 +27,9 @@ const SIGNAL_SCHEMA = {
           signal_type: { type: 'string', enum: ['product_market', 'pain_point', 'trend'] },
           description: { type: 'string' },
           user_quote: { type: 'string' },
+          // 评论区/review 区的补充原声（除 user_quote 外最多 3 条，注明出处位置如 "PH review"/"HN top comment"/"GitHub issue #123"）——
+          // 用户评论是比标题和排名更高密度的需求信号，值得单独保留。
+          top_comments: { type: 'array', items: { type: 'string' } },
           metrics: { type: 'string' },
           ai_opportunity: { type: 'string' },
           // 信源溯源：source_url 是否为一手平台（原帖/官方页/监管机构/主流媒体一手报道）。
@@ -93,6 +96,10 @@ const month = today.slice(0, 7)
 // PH 榜单 URL 用非补零月/日：/leaderboard/monthly/2026/7、/leaderboard/daily/2026/7/21
 const monthNum = String(parseInt(today.slice(5, 7), 10))
 const dayNum = today.length >= 10 ? String(parseInt(today.slice(8, 10), 10)) : ''
+// PH 周榜用 ISO 周数：/leaderboard/weekly/2026/30（页面 404 时让 agent ±1 调整）
+const _d = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, +(today.slice(8, 10) || 15)))
+_d.setUTCDate(_d.getUTCDate() + 4 - (_d.getUTCDay() || 7))
+const isoWeek = String(Math.ceil(((_d - Date.UTC(_d.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7))
 
 // 每组通用的日期语义说明（2026-07-21 审计：PH 组全部信号 source_date 被错填为当月 1 日）
 const DATE_RULES = `DATE SEMANTICS (hard rules):
@@ -103,25 +110,50 @@ const DATE_RULES = `DATE SEMANTICS (hard rules):
 
 const SEARCH_GROUPS = [
   {
-    key: 'producthunt-appsumo-clawhub',
-    label: 'Product Hunt + AppSumo + ClawHub',
+    key: 'producthunt-leaderboards-reviews',
+    label: 'Product Hunt 四档榜单 + Review 深挖',
     type: 'product_market',
-    prompt: `Collect PRODUCT MARKET SIGNALS from Product Hunt, AppSumo, and ClawHub.
+    prompt: `Collect PRODUCT MARKET SIGNALS from Product Hunt — leaderboards at FOUR time scales, plus product REVIEWS.
 
-FETCH-FIRST: these platforms have public leaderboard pages — WebFetch them DIRECTLY. Do NOT search for "what's trending on Product Hunt"; go read the leaderboard. Fetch ONE AT A TIME:
-1. https://www.producthunt.com/leaderboard/monthly/${year}/${monthNum} — monthly leaderboard
-${dayNum ? `2. https://www.producthunt.com/leaderboard/daily/${year}/${monthNum}/${dayNum} — today's daily leaderboard (also try 1-2 recent days by decrementing the day)` : ''}
-3. https://appsumo.com/collections/trending-ai/ — trending AI deals
-4. https://appsumo.com/browse/ — browse page (deal categories, prices, review counts)
-5. https://clawhub.ai/ — read the "Featured" / "Top" / "Trending" sections for agent skill download counts
+FETCH-FIRST: WebFetch the leaderboards DIRECTLY, ONE AT A TIME. Do NOT search for "what's trending on Product Hunt".
+${dayNum ? `1. https://www.producthunt.com/leaderboard/daily/${year}/${monthNum}/${dayNum} — daily top 5 (if sparse, also try 1-2 recent days by decrementing the day)` : ''}
+2. https://www.producthunt.com/leaderboard/weekly/${year}/${isoWeek} — weekly top 5 (if the page 404s, adjust the week number ±1)
+3. https://www.producthunt.com/leaderboard/monthly/${year}/${monthNum} — monthly top 5
+4. https://www.producthunt.com/leaderboard/yearly/${year} — yearly top 5
+
+WHY FOUR TIME SCALES: comparing daily→weekly→monthly→yearly reveals trend shifts — what survives from daily spike to monthly/yearly = durable demand; what appears at daily/weekly only = emerging category worth watching. Note explicitly which categories/products persist across scales and which are new this week.
+
+REVIEW DEEP-DIVE (mandatory): for the top products (at least the top 3 of daily and weekly, plus any product appearing on ≥2 leaderboards), fetch the product's reviews page: https://www.producthunt.com/products/{slug}/reviews
+- Extract: what users PRAISE (= validated core value), what users COMPLAIN about (= improvement gap an indie builder can attack), and exact quotes → top_comments.
+- Reviews and launch-day comments are higher-density demand signals than vote counts — a 4.2-star product with recurring complaints about the same missing feature is a productization opening.
 
 EXTRACTION RULES:
-- Product Hunt: capture the leaderboard CONTIGUOUSLY from rank #1 down (aim for top 10) — do not cherry-pick. Record rank, votes, comments. For notable products, fetch the product page for launch date and tagline; source_date = launch date.
-- AppSumo: deal name, price (LTD price vs original), rating, review count, category.
-- ClawHub: skill name, download count, what capability gap it fills.
+- Capture each leaderboard CONTIGUOUSLY from rank #1 down (top 5 per scale minimum) — do not cherry-pick. Record rank, votes, comments, which leaderboard(s) it appears on.
+- For notable products, fetch the product page for launch date and tagline; source_date = launch date.
 - Only fall back to WebSearch if a direct fetch fails (blocked/empty), and then mark those results secondhand as appropriate.
 
-For each product: name, problem solved, target user, business model, popularity metrics, and AI practitioner insights.
+For each product: name, problem solved, target user, business model, popularity metrics, review insights (praise vs complaints), and AI practitioner insights.
+
+${DATE_RULES}`,
+  },
+  {
+    key: 'appsumo-clawhub',
+    label: 'AppSumo + ClawHub',
+    type: 'product_market',
+    prompt: `Collect PRODUCT MARKET SIGNALS from AppSumo and ClawHub.
+
+FETCH-FIRST: WebFetch these public pages DIRECTLY, ONE AT A TIME:
+1. https://appsumo.com/collections/trending-ai/ — trending AI deals
+2. https://appsumo.com/browse/ — browse page (deal categories, prices, review counts)
+3. https://clawhub.ai/ — read the "Featured" / "Top" / "Trending" sections for agent skill download counts
+
+REVIEW DEEP-DIVE (mandatory): for the top 3-5 AppSumo deals, open the deal page and read user reviews — capture what buyers praise, what they complain about (refund reasons, missing features), and exact quotes → top_comments. Buyer reviews on lifetime deals are strong willingness-to-pay evidence AND a gap map.
+
+EXTRACTION RULES:
+- AppSumo: deal name, price (LTD price vs original), rating, review count, category, review quotes.
+- ClawHub: skill name, download count, what capability gap it fills; if a skill page shows user feedback/issues, capture them.
+- Only fall back to WebSearch if a direct fetch fails (blocked/empty), and then mark those results secondhand as appropriate.
+
 ClawHub: focus on what Agent skills are in high demand → AI Agent ecosystem real needs.
 
 ${DATE_RULES}`,
@@ -167,10 +199,10 @@ EXTRACTION RULES:
 ${DATE_RULES}`,
   },
   {
-    key: 'reddit',
-    label: 'Reddit Pain Points',
+    key: 'reddit-business',
+    label: 'Reddit 创业/商业痛点',
     type: 'pain_point',
-    prompt: `Collect PAIN POINT SIGNALS from Reddit — every signal MUST link an actual reddit.com thread.
+    prompt: `Collect PAIN POINT SIGNALS from BUSINESS/STARTUP subreddits — every signal MUST link an actual reddit.com thread.
 
 FETCH-FIRST: WebFetch subreddit listings DIRECTLY (old.reddit.com renders more reliably), one at a time:
 1. https://old.reddit.com/r/SaaS/top/?t=week
@@ -178,14 +210,39 @@ FETCH-FIRST: WebFetch subreddit listings DIRECTLY (old.reddit.com renders more r
 3. https://old.reddit.com/r/Entrepreneur/top/?t=week
 4. https://old.reddit.com/r/smallbusiness/top/?t=week
 5. https://old.reddit.com/r/sidehustle/top/?t=week
-6. https://old.reddit.com/r/AI_Agents/top/?t=week
-Then fetch the 2-4 most promising threads from each listing to get the OP text, top comments, and exact quotes.
+6. https://old.reddit.com/r/indiehackers/top/?t=week
+7. https://old.reddit.com/r/B2BSaaS/top/?t=week
+
+THREAD DEEP-DIVE (mandatory): from each listing, open the 3-5 HIGHEST-UPVOTED threads relevant to tools/pain/willingness-to-pay — read the OP text AND the top comments. The comment section usually contains the sharpest pain articulation, workarounds people currently pay for, and "I'd pay for this" replies; capture exact quotes → user_quote + top_comments.
 
 Supplement (optional): WebSearch site:reddit.com "I wish there was" AI tool ${year} — but any result you keep MUST be fetched and cited as the reddit.com thread URL itself.
 
 EXTRACTION RULES:
 - source_url MUST be a reddit.com/r/... thread URL. A blog summarizing "what Reddit thinks" is NOT acceptable as a Reddit signal.
-- Extract: pain point description, user quotes (exact words), subreddit, upvotes, existing solutions status.
+- Extract: pain point description, user quotes (exact words, OP + comments), subreddit, upvotes, existing solutions status.
+- source_date = thread post date (visible on the thread page).
+
+${DATE_RULES}`,
+  },
+  {
+    key: 'reddit-ai-dev',
+    label: 'Reddit AI/开发者痛点',
+    type: 'pain_point',
+    prompt: `Collect PAIN POINT SIGNALS from AI/DEVELOPER subreddits — every signal MUST link an actual reddit.com thread.
+
+FETCH-FIRST: WebFetch subreddit listings DIRECTLY (old.reddit.com renders more reliably), one at a time:
+1. https://old.reddit.com/r/AI_Agents/top/?t=week
+2. https://old.reddit.com/r/ClaudeAI/top/?t=week
+3. https://old.reddit.com/r/LocalLLaMA/top/?t=week
+4. https://old.reddit.com/r/ChatGPTPro/top/?t=week
+5. https://old.reddit.com/r/cursor/top/?t=week
+6. https://old.reddit.com/r/artificial/top/?t=week
+
+THREAD DEEP-DIVE (mandatory): from each listing, open the 3-5 HIGHEST-UPVOTED threads about tool frustrations, feature gaps, workflow pain, or cost complaints — read the OP text AND the top comments. Comment sections carry the workarounds, "+1 same problem" volume, and tool-switching stories that quantify a pain; capture exact quotes → user_quote + top_comments.
+
+EXTRACTION RULES:
+- source_url MUST be a reddit.com/r/... thread URL. A blog summarizing "what Reddit thinks" is NOT acceptable as a Reddit signal.
+- Extract: pain point description, user quotes (exact words, OP + comments), subreddit, upvotes, which tools users are abandoning/adopting and why.
 - source_date = thread post date (visible on the thread page).
 
 ${DATE_RULES}`,
@@ -272,9 +329,15 @@ FETCH-FIRST: WebFetch DIRECTLY, one at a time:
 5. https://hub.baai.ac.cn/ — 智源社区首页热门论文/项目
 Then fetch notable repo/model pages for star/download counts and READMEs.
 
+ISSUE DEEP-DIVE (mandatory): for the 3-5 most relevant trending repos (AI/agent/tool category), also fetch their issue tracker sorted by engagement:
+- https://github.com/{owner}/{repo}/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc — most-upvoted open issues
+- https://github.com/{owner}/{repo}/issues?q=is%3Aissue+sort%3Acomments-desc — most-discussed issues
+High-reaction issues are feature-gap demand signals: what users beg the maintainers for = what a commercial/vertical version should ship with. Also note issues the maintainers closed as "not planned" — officially abandoned demand is open territory for third parties. Capture issue titles, reaction counts, and key quotes → top_comments.
+For notable HF models, check the Community tab (https://huggingface.co/{org}/{model}/discussions) for recurring questions/complaints (deployment pain, quantization requests, license confusion).
+
 EXTRACTION RULES:
-- source_url = the github.com repo / huggingface.co model page itself. Star/download counts are as-of fetched_at — never date them with a content date.
-- Extract: repo/model name, stars/downloads, what problem it solves, growth velocity (stars this week if shown on trending), implications for product builders.
+- source_url = the github.com repo/issue / huggingface.co model page itself. Star/download counts are as-of fetched_at — never date them with a content date.
+- Extract: repo/model name, stars/downloads, what problem it solves, growth velocity (stars this week if shown on trending), top issue themes, implications for product builders.
 - 智源社区: Chinese AI academic frontier, new papers/projects → technology capability breakthrough signals.
 
 ${DATE_RULES}`,
@@ -473,7 +536,8 @@ ${g.prompt}
 IMPORTANT RULES:
 - FETCH-FIRST: when the group prompt lists direct URLs, WebFetch them before any WebSearch. Run fetches/searches ONE AT A TIME to avoid rate limits.
 - Use WebSearch only to locate content the direct pages don't surface, then WebFetch the primary page to verify before citing.
-- For each finding, extract structured data: title, source_url, source_date (original content date), fetched_at (today: ${today}), signal_type ("${g.type}"), description, user_quote (exact words if available), metrics, ai_opportunity, secondhand, primary_platform.
+- For each finding, extract structured data: title, source_url, source_date (original content date), fetched_at (today: ${today}), signal_type ("${g.type}"), description, user_quote (exact words if available), top_comments (up to 3 more verbatim quotes from comments/reviews/replies, each tagged with where it came from), metrics, ai_opportunity, secondhand, primary_platform.
+- USER VOICE DEEP-DIVE: rankings and titles tell you WHAT is popular; comments, reviews, replies, and issues tell you WHY and what's still missing. Wherever the platform exposes a comment/review/discussion section (PH reviews, HN threads, Reddit comments, AppSumo reviews, GitHub issues, YouTube comments, tweet replies, app-store reviews), read it and quote it — a signal with verbatim user voice is worth more than three signals with only metadata.
 - Return at least 5 signals if available, up to 15.
 - If a fetch fails (blocked/empty), retry once with an alternative URL from the prompt, then fall back to search.
 
@@ -511,6 +575,7 @@ const signalSummary = validSignals
     const lines = s.signals.map((sig) => {
       let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + sig.title + ': ' + sig.description
       if (sig.user_quote) line += ' — "' + sig.user_quote + '"'
+      if (sig.top_comments && sig.top_comments.length) line += ' — 评论区: ' + sig.top_comments.map((c) => '"' + c + '"').join(' / ')
       if (sig.source_url) line += ' (' + sig.source_url + ')'
       return line
     })
@@ -588,6 +653,8 @@ The report MUST follow this template structure:
 - 🏆 Top 5 机会 (scored tables with dimensions, one-liner, target user, pain sources with links, user quotes, competitor analysis, AI advantage, MVP plan, business model, cross-validation)
 - 📡 信号雷达 (product market signals / pain point signals / industry trends — with tables)
 - 🔗 交叉验证的高价值信号 (patterns appearing across ≥2 channels)
+
+USER VOICE RULE: signals carry user_quote and top_comments (verbatim quotes from comments/reviews/issues). Quote them liberally — every Top 5 opportunity MUST include a 用户原话 block, and the 信号雷达 sections should surface the sharpest review complaints / issue requests, not just metrics. Verbatim voice is the report's most defensible evidence.
 - 🇨🇳 中文市场专题信号 (if Chinese signals exist)
 - 📈 累积趋势 (themes appearing across multiple days, this week vs last week)
 - ⚠️ 免责声明
@@ -600,7 +667,7 @@ The report MUST follow this template structure:
 
 5. **Archive raw signals** to reports/${today.slice(0, 10) || month}/sources/:
 - One file per signal group, numbered by agent order STARTING FROM 01 (01 = 热点雷达 hot-topic radar output, 02+ = signal groups in order). No gaps in numbering.
-- Each file: group name, per-signal title/type/source_url/source_date/fetched_at/secondhand/description.
+- Each file: group name, per-signal title/type/source_url/source_date/fetched_at/secondhand/description/user_quote/top_comments.
 - Plus a README.md index: file list with signal counts, and a domain-frequency table flagging domains cited across multiple groups (dedup review) and secondhand ratios per group.
 
 Write all files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.
