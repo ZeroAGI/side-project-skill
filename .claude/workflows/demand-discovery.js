@@ -4,7 +4,7 @@ export const meta = {
   whenToUse: '每日或每周执行一次，系统性发现可产品化的用户痛点和市场机会（必须传 args.date）',
   phases: [
     { title: 'Hot Topic Radar', detail: 'Detect breaking events from last-72h media and derive dynamic search queries' },
-    { title: 'Signal Collection', detail: '15 static groups + dynamic hot-topic groups pipelined for rate-limit safety' },
+    { title: 'Signal Collection', detail: '15 static groups + dynamic hot-topic groups, run 6 at a time with 3 attempts each (2026-07-27 timeout fix)' },
     { title: 'Cross-Analysis', detail: 'Identify cross-validated patterns and score opportunities' },
     { title: 'Report Writing', detail: 'Write daily report and update opportunity tracker' },
   ],
@@ -486,12 +486,16 @@ For each MAJOR topic detected (dominating multiple outlets, or a flagship event 
 - event_window: when it happened/happens
 - queries: 3-5 specific search queries (mix Chinese/English as appropriate) a deep-dive researcher should run to extract product-opportunity signals from this topic
 
-Return 0-4 topics. Quality over quantity — only events big enough that missing them would embarrass a daily AI industry report. If nothing major happened, return an empty list.`,
+Return 0-4 topics. Quality over quantity — only events big enough that missing them would embarrass a daily AI industry report. If nothing major happened, return an empty list.
+
+ARCHIVE (do this before returning): write your findings to \`reports/${today}/sources/01-hot-topic-radar.md\` (create the directory if needed). Include for each topic: topic name, why_it_matters, event_window, the queries you derived, and the headline sources you saw. This file is archive slot 01; signal groups take 02+.
+
+SEARCH-CHANNEL SANITY CHECK: if a WebSearch returns results plainly unrelated to your query (e.g. every query returns the same result set, or results echo internal instruction text instead of the query), the search channel is malfunctioning — do NOT treat those results as findings. Note the malfunction in your archive file and rely on direct fetches instead. (2026-07-28: 48% of that run's searches were silently polluted this way and the failure was initially misdiagnosed as unreachable channels.)`,
   {
     label: '热点雷达',
     phase: 'Hot Topic Radar',
     schema: RADAR_SCHEMA,
-    model: 'sonnet',
+    model: 'fable',
     effort: 'medium',
   }
 )
@@ -526,10 +530,23 @@ phase('Signal Collection')
 const ALL_GROUPS = SEARCH_GROUPS.concat(dynamicGroups)
 log(`Scanning ${ALL_GROUPS.length} signal source groups (${SEARCH_GROUPS.length} static + ${dynamicGroups.length} dynamic)...`)
 
-const signals = await parallel(
-  ALL_GROUPS.map((g) => () =>
-    agent(
-      `You are a demand discovery researcher. Today is ${today}. Year: ${year}. Month: ${month}.
+// 2026-07-27 事故修复：19 组一次性并发时全组因 "passthrough stream idle timeout after 120s" 失败，
+// 一次瞬时流抖动报废了 15 个渠道（43 条信号 vs 正常 160-180）。三处加固：
+//   1) 每组最多 3 次尝试 — 瞬时超时只该损失一次重试，不该损失整个渠道
+//   2) 分批执行（每批 6 组）— 降低同时在飞的 web 工具调用数，减少流空闲。
+//      批次越小越稳但墙钟越长，而长运行更容易撞上 claude 进程重启（Workflow 是进程内运行，
+//      进程一退出后台任务全死，靠 journal 缓存 resume 捡回）。6 是稳定性与总时长的折中。
+//   3) 重试时收窄取样范围 — 拿到 5 条真信号胜过再超时一次拿 0 条
+const GROUP_ATTEMPTS = 3
+const BATCH_SIZE = 6
+
+// 归档编号：01 固定给热点雷达，信号组从 02 起，由脚本按 ALL_GROUPS 下标确定性分配。
+// 让每组 agent 自己写自己的归档文件（2026-07-28 改造）——此前由报告 agent 统一写 19 个文件，
+// 这是它必须在 prompt 里内联全量 signalsJSON（24.8 万字符）的根本原因，也是写报告阶段反复卡死的根因。
+const archiveName = (g, idx) => `${String(idx + 2).padStart(2, '0')}-${g.key}.md`
+
+const collectPrompt = (g, attempt, idx) =>
+  `You are a demand discovery researcher. Today is ${today}. Year: ${year}. Month: ${month}.
 
 ${g.prompt}
 
@@ -541,6 +558,31 @@ IMPORTANT RULES:
 - Return at least 5 signals if available, up to 15.
 - If a fetch fails (blocked/empty), retry once with an alternative URL from the prompt, then fall back to search.
 
+SEARCH-CHANNEL SANITY CHECK: if WebSearch returns results plainly unrelated to your query — every query yielding the same result set, or results echoing internal instruction text instead of your query terms — the search channel is malfunctioning. Do NOT mine those results for signals and do NOT record the failure as "channel unreachable"; say explicitly that the SEARCH CHANNEL malfunctioned, and fall back to direct fetches. (On 2026-07-28, 48% of searches were silently polluted this way; several groups misattributed it to site blocks and one group returned zero signals as a result.)
+
+ARCHIVE YOUR OWN OUTPUT (mandatory, do this BEFORE returning your structured result):
+Write your signals to \`reports/${today}/sources/${archiveName(g, idx)}\` (create the directory if needed). Format:
+\`\`\`
+# ${String(idx + 2).padStart(2, '0')} — ${g.label} ${today}
+
+> 组内信号：N 条 | 二手转述：M 条（X%）
+> 一句话说明本组最强证据线，以及任何渠道故障/不可达情况
+
+---
+
+## 1. <signal title>
+- **type**: <signal_type> | **platform**: <primary_platform> | **secondhand**: <true|false>
+- **source_url**: <url>
+- **source_date**: <date or 空> | **fetched_at**: ${today}
+- **metrics**: <numbers>
+- **description**: <what it is and why it matters>
+- **user_quote**: "<verbatim>"
+- **top_comments**:
+  - [<where from>] <verbatim>
+- **ai_opportunity**: <productization angle>
+\`\`\`
+This archive is the evidence trail the report cites — the report writer will Read it for verbatim depth, so do not abbreviate quotes here.
+
 SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of signals cited SEO aggregators instead of primary sources):
 - KEY QUANTITATIVE DATA (download counts, GitHub stars, survey percentages, revenue/MRR, vote counts) MUST cite the PRIMARY platform URL: github.com, clawhub.ai, producthunt.com, reddit.com, news.ycombinator.com, survey.stackoverflow.co, official company blogs/press releases, regulator sites.
 - When a search result is an SEO aggregator/roundup blog (e.g. "top 10 trending repos" listicles), WebFetch the primary page it references and cite THAT url. Only if the primary page cannot be located, keep the aggregator URL and set secondhand: true.
@@ -549,21 +591,150 @@ SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of sig
 - Never fabricate or "smooth over" a URL. If you did not see the page, do not cite it.
 - secondhand: false is a claim that source_url IS the primary source (original thread / official page / first-party report). Set it honestly — downstream analysis discounts secondhand-only evidence.
 - DATES: source_date is the content's original date (post/launch/publish), NEVER your visit date and NEVER a month-start placeholder; put your visit date in fetched_at. Leaderboard-ranking snapshots: source_date empty, fetched_at carries the timeliness.
-- COMPLETENESS: when reading a ranked leaderboard, capture ranks contiguously from #1 (do not skip ranks you find boring — a skipped rank is a hole reviewers will find).`,
-      {
-        label: g.label,
+- COMPLETENESS: when reading a ranked leaderboard, capture ranks contiguously from #1 (do not skip ranks you find boring — a skipped rank is a hole reviewers will find).${
+    attempt > 1
+      ? `
+
+RETRY NOTE (attempt ${attempt}/${GROUP_ATTEMPTS}): a previous attempt of this group timed out. Work FASTER and NARROWER this time: cap yourself at ~6-8 web tool calls total, prioritize the group's single most important direct URL first, and return the 5-8 strongest signals early rather than exhausting every query. A partial result beats another timeout.`
+      : ''
+  }`
+
+// 2026-07-28：安全类热点（模型逃逸/入侵/漏洞）会被模型安全策略直接拒绝，这是确定性拒绝而非瞬时故障——
+// 盲目重试 3 次只是把同一次拒绝重放三遍。识别出来就立即放弃该组并说明原因，把重试预算留给真正的超时。
+const isTerminalRefusal = (msg) =>
+  /safeguards flagged|cyber_use_case|cyber-use-case|exemption/i.test(String(msg || ''))
+
+const collectGroup = async (g, idx) => {
+  for (let attempt = 1; attempt <= GROUP_ATTEMPTS; attempt++) {
+    try {
+      const result = await agent(collectPrompt(g, attempt, idx), {
+        label: attempt > 1 ? `${g.label} (retry ${attempt})` : g.label,
         phase: 'Signal Collection',
         schema: SIGNAL_SCHEMA,
-        model: 'sonnet',
+        model: 'fable',
         effort: 'medium',
+      })
+      if (result) return result
+      log(`⚠ ${g.label}: attempt ${attempt}/${GROUP_ATTEMPTS} returned nothing${attempt < GROUP_ATTEMPTS ? ', retrying' : ' — group lost'}`)
+    } catch (e) {
+      const msg = String(e && e.message ? e.message : e)
+      if (isTerminalRefusal(msg)) {
+        log(`⛔ ${g.label}: blocked by model safety policy (security-topic refusal) — NOT retrying. This topic needs a reframed, defense-oriented query or a manual pass.`)
+        return null
       }
-    )
-  )
-)
+      log(`⚠ ${g.label}: attempt ${attempt}/${GROUP_ATTEMPTS} failed (${msg.slice(0, 120)})${attempt < GROUP_ATTEMPTS ? ', retrying' : ' — group lost'}`)
+    }
+  }
+  return null
+}
+
+// 分批执行：每批 BATCH_SIZE 组并发，批间为屏障。牺牲一些墙钟时间换取流稳定性——
+// 全量并发时批内某组的重试也天然错峰，不会再形成 19 组同时打满 web 工具的尖峰。
+const signals = []
+for (let i = 0; i < ALL_GROUPS.length; i += BATCH_SIZE) {
+  const batch = ALL_GROUPS.slice(i, i + BATCH_SIZE)
+  log(`Batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(ALL_GROUPS.length / BATCH_SIZE)}: ${batch.map((g) => g.label).join(' | ')}`)
+  const batchResults = await parallel(batch.map((g, j) => () => collectGroup(g, i + j)))
+  signals.push(...batchResults)
+}
 
 const validSignals = signals.filter(Boolean)
 const totalSignalCount = validSignals.reduce((sum, s) => sum + (s.signals ? s.signals.length : 0), 0)
+const lostGroups = ALL_GROUPS.filter((g, i) => !signals[i]).map((g) => g.label)
 log(`Collected ${totalSignalCount} signals from ${validSignals.length}/${ALL_GROUPS.length} groups`)
+
+// 无声降级是最危险的失败模式：43 条信号的报告和 170 条的报告长得一样。把缺口显式喊出来。
+if (lostGroups.length) {
+  log(`⚠ ${lostGroups.length} group(s) LOST after ${GROUP_ATTEMPTS} attempts — report coverage is incomplete: ${lostGroups.join('; ')}`)
+}
+if (validSignals.length < ALL_GROUPS.length * 0.6 || totalSignalCount < 60) {
+  log(`🔴 COVERAGE ALERT: only ${validSignals.length}/${ALL_GROUPS.length} groups and ${totalSignalCount} signals (healthy runs land 150+). The report must state this shortfall in 今日概览 rather than read as a normal day.`)
+}
+
+// ── 归档索引：全部计数用 JS 算，不交给模型 ────────────────────────────────────
+// 2026-07-28：报告 agent 把 19 行分组数字（各行都对）加成了 143，实际 162；二手数也从 46 算成 44，
+// 于是概览、信号雷达、免责声明三处口径全错。加法不是模型该干的活，这里预渲染成 markdown 直接落盘。
+
+const hostOf = (u) => {
+  const m = /^https?:\/\/([^/]+)/i.exec(String(u || ''))
+  return m ? m[1].replace(/^www\./, '') : ''
+}
+
+const groupStats = ALL_GROUPS.map((g, i) => {
+  const res = signals[i]
+  const sigs = res && res.signals ? res.signals : []
+  const sh = sigs.filter((s) => s.secondhand).length
+  return {
+    file: archiveName(g, i),
+    label: g.label,
+    lost: !res,
+    count: sigs.length,
+    secondhand: sh,
+    pct: sigs.length ? Math.round((sh * 100) / sigs.length) : 0,
+    signals: sigs,
+  }
+})
+
+const secondhandTotal = groupStats.reduce((n, s) => n + s.secondhand, 0)
+const typeCounts = {}
+groupStats.forEach((s) => s.signals.forEach((x) => { typeCounts[x.signal_type] = (typeCounts[x.signal_type] || 0) + 1 }))
+
+// 跨组域名频次：同域出现在多组时提示去重审查（三篇转述同一份调查 ≠ 三个独立来源）
+const domainMap = {}
+groupStats.forEach((s) => s.signals.forEach((x) => {
+  const h = hostOf(x.source_url)
+  if (!h) return
+  if (!domainMap[h]) domainMap[h] = { n: 0, groups: {} }
+  domainMap[h].n += 1
+  domainMap[h].groups[s.file.slice(0, 2)] = true
+}))
+const domainRows = Object.keys(domainMap)
+  .map((h) => ({ host: h, n: domainMap[h].n, groups: Object.keys(domainMap[h].groups).sort() }))
+  .filter((d) => d.n > 1)
+  .sort((a, b) => b.n - a.n || a.host.localeCompare(b.host))
+
+const archiveIndexMd = [
+  `# 原始信号归档索引 — ${today}`,
+  '',
+  '> 本索引由 workflow 脚本按结构化输出直接计算生成（非模型口算）。',
+  '',
+  '## 采集概况',
+  '',
+  '| 项目 | 数值 |',
+  '|------|------|',
+  `| 信号组 | ${validSignals.length}/${ALL_GROUPS.length} 组成功 |`,
+  `| 信号总数 | **${totalSignalCount}** 条 |`,
+  `| 二手转述 | **${secondhandTotal}** 条（${totalSignalCount ? Math.round((secondhandTotal * 100) / totalSignalCount) : 0}%） |`,
+  `| 类型分布 | ${Object.keys(typeCounts).sort((a, b) => typeCounts[b] - typeCounts[a]).map((k) => `${k} ${typeCounts[k]}`).join(' / ') || '—'} |`,
+  lostGroups.length ? `| ⚠️ 彻底失败 | ${lostGroups.length} 组，贡献 0 条信号：${lostGroups.join('；')} |` : '| 失败组 | 无 |',
+  '',
+  '## 文件列表',
+  '',
+  '| 文件 | 信号组 | 信号数 | 二手 | 二手占比 |',
+  '|------|--------|--------|------|---------|',
+  '| [01-hot-topic-radar.md](01-hot-topic-radar.md) | 热点雷达 | — | — | — |',
+]
+  .concat(
+    groupStats.map((s) =>
+      s.lost
+        ? `| ⚠️ ${s.file}（未生成） | ${s.label} | **0（采集失败）** | — | — |`
+        : `| [${s.file}](${s.file}) | ${s.label} | ${s.count} | ${s.secondhand} | ${s.pct}% |`
+    )
+  )
+  .concat([
+    '',
+    `**合计：${totalSignalCount} 条信号，${secondhandTotal} 条二手转述（${totalSignalCount ? Math.round((secondhandTotal * 100) / totalSignalCount) : 0}%）**`,
+    '',
+    '## 跨组域名频次（去重审查）',
+    '',
+    '> 同一域名跨多组出现时，交叉验证不得按多个独立来源计。',
+    '',
+    '| 域名 | 次数 | 出现于组 |',
+    '|------|------|---------|',
+  ])
+  .concat(domainRows.slice(0, 40).map((d) => `| ${d.host} | ${d.n} | ${d.groups.join(', ')} |`))
+  .concat(['', `（仅列出出现 ≥2 次的域名，共 ${domainRows.length} 个）`])
+  .join('\n')
 
 // ── Phase 2: Cross-Analysis ──────────────────────────────────────────────────
 
@@ -628,24 +799,63 @@ phase('Report Writing')
 log('Writing daily report and updating opportunity tracker...')
 
 const opportunitiesJSON = JSON.stringify(analysis, null, 2)
-const signalsJSON = JSON.stringify(validSignals, null, 2)
+
+// 2026-07-28 精简：此前把 validSignals 的完整 JSON（24.8 万字符，其中 signalsJSON 占 91%）内联进
+// 报告 agent 的 prompt，导致写报告阶段反复超时/停滞。现在归档文件由各采集组自己写好，报告 agent
+// 只吃紧凑摘要（丢掉 ai_opportunity/metrics/top_comments/fetched_at/primary_platform，正文截断），
+// 需要逐字原声时按机会去 Read 对应归档文件——把「全量常驻上下文」换成「按需检索」。
+const trunc = (s, n) => {
+  const v = String(s || '').replace(/\s+/g, ' ')
+  return v.length > n ? v.slice(0, n) + '…' : v
+}
+
+const signalDigest = groupStats
+  .filter((s) => !s.lost && s.count)
+  .map((s) => {
+    const lines = s.signals.map((sig, k) => {
+      let line = `${k + 1}. [${sig.signal_type}${sig.secondhand ? '|二手' : ''}] ${trunc(sig.title, 110)}`
+      line += `\n   ${trunc(sig.description, 220)}`
+      if (sig.user_quote) line += `\n   原话: "${trunc(sig.user_quote, 160)}"`
+      if (sig.source_url) line += `\n   ${sig.source_url}${sig.source_date ? ' · ' + sig.source_date : ''}`
+      return line
+    })
+    return `## ${s.label}  →  归档: sources/${s.file}  (${s.count} 条, 二手 ${s.secondhand})\n${lines.join('\n')}`
+  })
+  .join('\n\n')
+
+const coverageNote = lostGroups.length
+  ? `\n## ⚠ SCAN COVERAGE (must be disclosed in 今日概览)\nThis run scanned ${validSignals.length}/${ALL_GROUPS.length} signal groups. ${lostGroups.length} group(s) failed after ${GROUP_ATTEMPTS} attempts and contributed NO signals: ${lostGroups.join('; ')}.\nState this explicitly in 今日概览 (which channels are missing), and do not present cross-channel validation counts as if those channels had been checked.\n`
+  : ''
 
 const report = await agent(
   `You are a demand discovery report writer. Write today's (${today}) 每日需求发现报告.
+${coverageNote}
+## AUTHORITATIVE COUNTS (computed by the workflow — use these verbatim, do NOT recount)
+
+- 信号组：${validSignals.length}/${ALL_GROUPS.length} 组成功${lostGroups.length ? `（失败 ${lostGroups.length} 组）` : ''}
+- 信号总数：**${totalSignalCount}** 条
+- 二手转述：**${secondhandTotal}** 条（${totalSignalCount ? Math.round((secondhandTotal * 100) / totalSignalCount) : 0}%）
+- 类型分布：${Object.keys(typeCounts).sort((a, b) => typeCounts[b] - typeCounts[a]).map((k) => `${k} ${typeCounts[k]}`).join(' / ') || '—'}
+
+These numbers are already summed for you. On 2026-07-28 the writer re-added the per-group column by hand and reported 143 instead of 162 (and 44 instead of 46 secondhand), corrupting 今日概览, 信号雷达 and 免责声明 at once. Copy the figures above; never recompute a total.
 
 ## DATA TO USE
 
 ### Cross-Analysis Results (Top Opportunities)
 ${opportunitiesJSON}
 
-### Raw Signal Data
-${signalsJSON}
+### Signal Digest (condensed — full verbatim evidence lives in the archive files)
+${signalDigest}
 
 ## YOUR TASKS
 
 1. **Read the previous report** at reports/ directory — find the most recent demand-discovery-report.md to compare with yesterday
 2. **Read the opportunity tracker** at reports/_opportunity-tracker/opportunities.md
 3. **Write the daily report** to reports/${today.slice(0, 10) || month + '-27'}/demand-discovery-report.md
+
+ARCHIVE FILES ARE ALREADY ON DISK — each signal group wrote its own \`reports/${today}/sources/NN-*.md\` containing the FULL verbatim record (top_comments, metrics, ai_opportunity) that the digest above omits. **Read the archive files for the groups backing your Top 5 opportunities** to pull exact quotes. Do not re-derive or rewrite those archives; they are the evidence trail.
+
+WRITE INCREMENTALLY: write the report in sections (Write the head, then append later sections) rather than emitting one enormous file in a single call — single-shot writes of 600+ line reports have stalled repeatedly.
 
 The report MUST follow this template structure:
 - # 每日需求发现报告 — {date}
@@ -654,25 +864,14 @@ The report MUST follow this template structure:
 - 📡 信号雷达 (product market signals / pain point signals / industry trends — with tables)
 - 🔗 交叉验证的高价值信号 (patterns appearing across ≥2 channels)
 
-USER VOICE RULE: signals carry user_quote and top_comments (verbatim quotes from comments/reviews/issues). Quote them liberally — every Top 5 opportunity MUST include a 用户原话 block, and the 信号雷达 sections should surface the sharpest review complaints / issue requests, not just metrics. Verbatim voice is the report's most defensible evidence.
+USER VOICE RULE: every Top 5 opportunity MUST include a 用户原话 block, and the 信号雷达 sections should surface the sharpest review complaints / issue requests, not just metrics. The digest gives you one quote per signal; **Read the archive file when you need the comment-section depth (top_comments)**. Verbatim voice is the report's most defensible evidence.
 - 🇨🇳 中文市场专题信号 (if Chinese signals exist)
 - 📈 累积趋势 (themes appearing across multiple days, this week vs last week)
 - ⚠️ 免责声明
 
-4. **Update the opportunity tracker** at reports/_opportunity-tracker/opportunities.md:
-- Same opportunity appearing again → increment appearance count, take max score
-- New opportunity → add row
-- Appearance count ≥3 → mark "⭐ 值得深入研究"
-- Keep existing manually-marked statuses
+The report should be comprehensive (300+ lines), with specific data, links, and quotes.
 
-5. **Archive raw signals** to reports/${today.slice(0, 10) || month}/sources/:
-- One file per signal group, numbered by agent order STARTING FROM 01 (01 = 热点雷达 hot-topic radar output, 02+ = signal groups in order). No gaps in numbering.
-- Each file: group name, per-signal title/type/source_url/source_date/fetched_at/secondhand/description/user_quote/top_comments.
-- Plus a README.md index: file list with signal counts, and a domain-frequency table flagging domains cited across multiple groups (dedup review) and secondhand ratios per group.
-
-Write all files. The report should be comprehensive (300+ lines), with specific data, links, and quotes from the signals.
-
-SOURCE ANNOTATION RULE: signals with secondhand: true are unverified paraphrases — when citing their numbers in the report, append「（二手转述，未经一手核实）」after the figure, and never let a secondhand-only number be the headline evidence for a Top 3 opportunity. In 今日概览, report the count of secondhand signals alongside total signals.`,
+SOURCE ANNOTATION RULE: signals marked 二手 are unverified paraphrases — when citing their numbers in the report, append「（二手转述，未经一手核实）」after the figure, and never let a secondhand-only number be the headline evidence for a Top 3 opportunity. In 今日概览, report the count of secondhand signals alongside total signals (figures above).`,
   {
     label: 'Report Writer',
     phase: 'Report Writing',
@@ -680,12 +879,45 @@ SOURCE ANNOTATION RULE: signals with secondhand: true are unverified paraphrases
   }
 )
 
+// 归档索引与 tracker 从报告 agent 剥离：索引内容已由脚本算好，这里只需一次写盘；
+// tracker 只依赖机会列表，不需要任何信号数据。两者与报告解耦后互不拖累。
+await parallel([
+  () =>
+    agent(
+      `Write the following content EXACTLY as given to \`reports/${today}/sources/README.md\` (create directories if needed). Do not edit, summarize, reformat, or recompute any number in it — it was computed programmatically. After writing, list the files present in that directory and append a short "## 缺失文件" section ONLY if any file referenced in the table above is missing from disk.
+
+--- BEGIN CONTENT ---
+${archiveIndexMd}
+--- END CONTENT ---`,
+      { label: 'Archive Index', phase: 'Report Writing', model: 'fable', effort: 'low' }
+    ),
+  () =>
+    agent(
+      `Update the cumulative opportunity tracker at \`reports/_opportunity-tracker/opportunities.md\` for today (${today}).
+
+Read the file first to learn its exact table format and existing rows, then apply today's opportunities:
+
+${opportunitiesJSON}
+
+RULES:
+- Same opportunity appearing again → increment 出现次数, take the MAX score, and fold today's new evidence into its notes (keep the historical evidence trail, prepend today's).
+- New opportunity → add a row with 首次发现 = ${today}.
+- 出现次数 ≥3 → mark "⭐ 值得深入研究".
+- PRESERVE any manually-set status (正在做 / 已验证 / 已放弃) — never overwrite those.
+- Update the "最后更新" line to ${today}.
+- Match the existing row format exactly; do not restructure the table.`,
+      { label: 'Tracker Update', phase: 'Report Writing', effort: 'medium' }
+    ),
+])
+
 log('Report complete!')
 
 return {
   total_signals: totalSignalCount,
+  secondhand_signals: secondhandTotal,
   groups_completed: validSignals.length,
-  groups_total: SEARCH_GROUPS.length,
+  groups_total: ALL_GROUPS.length,
+  lost_groups: lostGroups,
   opportunities: analysis ? analysis.opportunities.length : 0,
   top_opportunity: analysis && analysis.opportunities.length > 0 ? analysis.opportunities[0].name : 'none',
 }
