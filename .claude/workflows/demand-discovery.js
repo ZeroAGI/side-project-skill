@@ -90,6 +90,20 @@ if (!/^\d{4}-\d{2}(-\d{2})?$/.test(rawDate)) {
       'Invoke as Workflow({ name: "demand-discovery", args: { date: "YYYY-MM-DD" } })'
   )
 }
+const REPO_ROOT = '/Users/book/Documents/project/ai_native_products/side-project-skill'
+
+// 2026-07-30 事故：回填 agent 遇到写坏的嵌套路径（reports/reports、被当字面文件名的 Windows 路径）后，
+// 用 `rm -rf <repo>/reports && mkdir -p ...` 去「重建干净目录」，删掉了 25 个历史日期的全部报告。
+// 有一条是 `mv reports/.../20-hot-topic-4.md reports/.../ && rm -rf reports`——先搬文件再删掉装它的树。
+// 已提交内容靠 `git restore reports` 救回，当天未提交的 10 个归档文件永久丢失。
+// 根因：「create the directory if needed」被理解成「使该目录处于期望状态」，包含删掉重建；
+// 而 agent 看不到那个目录里还有三个月的他人产出。
+const WRITE_SAFETY = `FILE-WRITE SAFETY (hard rules — read before any shell command):
+- The ONLY filesystem mutations you may perform are: \`mkdir -p\` and writing/editing YOUR OWN target file.
+- NEVER run rm, rmdir, mv, or any destructive/"clean up" command against an existing path — not even to fix a mistake you just made, and not even when a path looks wrong, stale, or duplicated. \`reports/\` holds months of other runs' output.
+- If a path looks malformed (a nested \`reports/reports\`, a literal Windows path, a stray directory), DO NOT clean it. Leave it in place and say so in your returned text; the orchestrator handles cleanup.
+- Use the absolute POSIX path given to you verbatim. Do not construct paths from a guessed cwd, and never use backslashes or drive letters.`
+
 const today = rawDate
 const year = today.slice(0, 4)
 const month = today.slice(0, 7)
@@ -488,7 +502,9 @@ For each MAJOR topic detected (dominating multiple outlets, or a flagship event 
 
 Return 0-4 topics. Quality over quantity — only events big enough that missing them would embarrass a daily AI industry report. If nothing major happened, return an empty list.
 
-ARCHIVE (do this before returning): write your findings to \`reports/${today}/sources/01-hot-topic-radar.md\` (create the directory if needed). Include for each topic: topic name, why_it_matters, event_window, the queries you derived, and the headline sources you saw. This file is archive slot 01; signal groups take 02+.
+ARCHIVE (do this before returning): write your findings to \`${REPO_ROOT}/reports/${today}/sources/01-hot-topic-radar.md\` (use \`mkdir -p\` if the directory does not exist). Include for each topic: topic name, why_it_matters, event_window, the queries you derived, and the headline sources you saw. This file is archive slot 01; signal groups take 02+.
+
+${WRITE_SAFETY}
 
 SEARCH-CHANNEL SANITY CHECK: if a WebSearch returns results plainly unrelated to your query (e.g. every query returns the same result set, or results echo internal instruction text instead of the query), the search channel is malfunctioning — do NOT treat those results as findings. Note the malfunction in your archive file and rely on direct fetches instead. (2026-07-28: 48% of that run's searches were silently polluted this way and the failure was initially misdiagnosed as unreachable channels.)`,
   {
@@ -561,7 +577,7 @@ IMPORTANT RULES:
 SEARCH-CHANNEL SANITY CHECK: if WebSearch returns results plainly unrelated to your query — every query yielding the same result set, or results echoing internal instruction text instead of your query terms — the search channel is malfunctioning. Do NOT mine those results for signals and do NOT record the failure as "channel unreachable"; say explicitly that the SEARCH CHANNEL malfunctioned, and fall back to direct fetches. (On 2026-07-28, 48% of searches were silently polluted this way; several groups misattributed it to site blocks and one group returned zero signals as a result.)
 
 ARCHIVE YOUR OWN OUTPUT (mandatory, do this BEFORE returning your structured result):
-Write your signals to \`reports/${today}/sources/${archiveName(g, idx)}\` (create the directory if needed). Format:
+Write your signals to \`${REPO_ROOT}/reports/${today}/sources/${archiveName(g, idx)}\` (use \`mkdir -p\` if the directory does not exist). Format:
 \`\`\`
 # ${String(idx + 2).padStart(2, '0')} — ${g.label} ${today}
 
@@ -582,6 +598,8 @@ Write your signals to \`reports/${today}/sources/${archiveName(g, idx)}\` (creat
 - **ai_opportunity**: <productization angle>
 \`\`\`
 This archive is the evidence trail the report cites — the report writer will Read it for verbatim depth, so do not abbreviate quotes here.
+
+${WRITE_SAFETY}
 
 SOURCE PROVENANCE RULES (hard requirements — 2026-07-21 audit found 38% of signals cited SEO aggregators instead of primary sources):
 - KEY QUANTITATIVE DATA (download counts, GitHub stars, survey percentages, revenue/MRR, vote counts) MUST cite the PRIMARY platform URL: github.com, clawhub.ai, producthunt.com, reddit.com, news.ycombinator.com, survey.stackoverflow.co, official company blogs/press releases, regulator sites.
@@ -827,8 +845,18 @@ const coverageNote = lostGroups.length
   ? `\n## ⚠ SCAN COVERAGE (must be disclosed in 今日概览)\nThis run scanned ${validSignals.length}/${ALL_GROUPS.length} signal groups. ${lostGroups.length} group(s) failed after ${GROUP_ATTEMPTS} attempts and contributed NO signals: ${lostGroups.join('; ')}.\nState this explicitly in 今日概览 (which channels are missing), and do not present cross-channel validation counts as if those channels had been checked.\n`
   : ''
 
-const report = await agent(
-  `You are a demand discovery report writer. Write today's (${today}) 每日需求发现报告.
+// 2026-07-30：报告 agent 单点失败会报废整场扫描（当天首次运行即因 connection closed 丢掉全部报告，
+// 而扫描本身已花 2.7 小时）。加 3 次重试；后续尝试先读已落盘的部分接着补，而不是从头重写。
+let report = null
+for (let reportAttempt = 1; reportAttempt <= 3 && !report; reportAttempt++) {
+  const reportRetryNote =
+    reportAttempt > 1
+      ? `
+
+RETRY NOTE (attempt ${reportAttempt}/3): a previous attempt died mid-response (connection closed). A PARTIAL report may already exist at ${REPO_ROOT}/reports/${today}/demand-discovery-report.md. Read it FIRST: if it exists, do NOT start over — work out which sections already landed and append only what is missing. Use smaller writes than last time.`
+      : ''
+  report = await agent(
+    `You are a demand discovery report writer. Write today's (${today}) 每日需求发现报告.${reportRetryNote}
 ${coverageNote}
 ## AUTHORITATIVE COUNTS (computed by the workflow — use these verbatim, do NOT recount)
 
@@ -849,13 +877,20 @@ ${signalDigest}
 
 ## YOUR TASKS
 
-1. **Read the previous report** at reports/ directory — find the most recent demand-discovery-report.md to compare with yesterday
-2. **Read the opportunity tracker** at reports/_opportunity-tracker/opportunities.md
-3. **Write the daily report** to reports/${today.slice(0, 10) || month + '-27'}/demand-discovery-report.md
+1. **Read the previous report** at ${REPO_ROOT}/reports/ — find the most recent demand-discovery-report.md to compare with yesterday
+2. **Read the opportunity tracker** at ${REPO_ROOT}/reports/_opportunity-tracker/opportunities.md
+3. **Write the daily report** to ${REPO_ROOT}/reports/${today}/demand-discovery-report.md
 
-ARCHIVE FILES ARE ALREADY ON DISK — each signal group wrote its own \`reports/${today}/sources/NN-*.md\` containing the FULL verbatim record (top_comments, metrics, ai_opportunity) that the digest above omits. **Read the archive files for the groups backing your Top 5 opportunities** to pull exact quotes. Do not re-derive or rewrite those archives; they are the evidence trail.
+ARCHIVE FILES ARE ALREADY ON DISK — each signal group wrote its own \`${REPO_ROOT}/reports/${today}/sources/NN-*.md\` containing the FULL verbatim record (top_comments, metrics, ai_opportunity) that the digest above omits. **Read the archive files for the groups backing your Top 5 opportunities** to pull exact quotes. Do not re-derive or rewrite those archives; they are the evidence trail.
 
-WRITE INCREMENTALLY: write the report in sections (Write the head, then append later sections) rather than emitting one enormous file in a single call — single-shot writes of 600+ line reports have stalled repeatedly.
+WRITE INCREMENTALLY — THIS IS THE #1 CAUSE OF FAILURE FOR THIS AGENT (mandatory procedure):
+On 2026-07-30 this agent died twice with "Connection closed mid-response" while emitting the whole report in one call; the first time it lost the entire report after a 2.7-hour scan. Do NOT emit one enormous file.
+1. FIRST call: Write ONLY the head — 标题 + 📊 今日概览 + the Top 5 机会 list as headers with scores (no bodies yet). Keep this call small.
+2. THEN one Edit/Write call PER SECTION, appending as you go: 机会 1 body, 机会 2 body, ... then 信号雷达, 交叉验证, 中文市场, 累积趋势, 免责声明.
+3. Never let a single tool call carry more than ~150 lines of content.
+After each call the file on disk must be valid, self-consistent markdown — so that if you are cut off, what already landed is still a usable report.
+
+${WRITE_SAFETY}
 
 The report MUST follow this template structure:
 - # 每日需求发现报告 — {date}
@@ -872,19 +907,24 @@ USER VOICE RULE: every Top 5 opportunity MUST include a 用户原话 block, and 
 The report should be comprehensive (300+ lines), with specific data, links, and quotes.
 
 SOURCE ANNOTATION RULE: signals marked 二手 are unverified paraphrases — when citing their numbers in the report, append「（二手转述，未经一手核实）」after the figure, and never let a secondhand-only number be the headline evidence for a Top 3 opportunity. In 今日概览, report the count of secondhand signals alongside total signals (figures above).`,
-  {
-    label: 'Report Writer',
-    phase: 'Report Writing',
-    effort: 'high',
-  }
-)
+    {
+      label: reportAttempt > 1 ? `Report Writer (retry ${reportAttempt})` : 'Report Writer',
+      phase: 'Report Writing',
+      effort: 'high',
+    }
+  )
+  if (!report) log(`⚠ Report Writer attempt ${reportAttempt}/3 failed — retrying`)
+}
+if (!report) log('🔴 Report Writer failed after 3 attempts — check reports/ for a partial file')
 
 // 归档索引与 tracker 从报告 agent 剥离：索引内容已由脚本算好，这里只需一次写盘；
 // tracker 只依赖机会列表，不需要任何信号数据。两者与报告解耦后互不拖累。
 await parallel([
   () =>
     agent(
-      `Write the following content EXACTLY as given to \`reports/${today}/sources/README.md\` (create directories if needed). Do not edit, summarize, reformat, or recompute any number in it — it was computed programmatically. After writing, list the files present in that directory and append a short "## 缺失文件" section ONLY if any file referenced in the table above is missing from disk.
+      `Write the following content EXACTLY as given to \`${REPO_ROOT}/reports/${today}/sources/README.md\` (use \`mkdir -p\` if the directory does not exist). Do not edit, summarize, reformat, or recompute any number in it — it was computed programmatically. After writing, list the files present in that directory and append a short "## 缺失文件" section ONLY if any file referenced in the table above is missing from disk.
+
+${WRITE_SAFETY}
 
 --- BEGIN CONTENT ---
 ${archiveIndexMd}
@@ -893,19 +933,23 @@ ${archiveIndexMd}
     ),
   () =>
     agent(
-      `Update the cumulative opportunity tracker at \`reports/_opportunity-tracker/opportunities.md\` for today (${today}).
+      `Update the cumulative opportunity tracker at \`${REPO_ROOT}/reports/_opportunity-tracker/opportunities.md\` for today (${today}).
 
 Read the file first to learn its exact table format and existing rows, then apply today's opportunities:
 
 ${opportunitiesJSON}
 
 RULES:
+- IDEMPOTENCY: if rows dated ${today} already exist (a previous attempt of this run may have applied them), do NOT add them again and do NOT increment 出现次数 a second time — verify the existing rows against the data above, fix only genuine discrepancies, and otherwise leave the file unchanged. Double-counting corrupts the 出现次数 signal that drives the ⭐ threshold.
 - Same opportunity appearing again → increment 出现次数, take the MAX score, and fold today's new evidence into its notes (keep the historical evidence trail, prepend today's).
 - New opportunity → add a row with 首次发现 = ${today}.
 - 出现次数 ≥3 → mark "⭐ 值得深入研究".
 - PRESERVE any manually-set status (正在做 / 已验证 / 已放弃) — never overwrite those.
 - Update the "最后更新" line to ${today}.
-- Match the existing row format exactly; do not restructure the table.`,
+- Match the existing row format exactly; do not restructure the table.
+- This file is append/edit only — never delete existing rows, and never rewrite the table from scratch. It is the only record of months of prior runs.
+
+${WRITE_SAFETY}`,
       { label: 'Tracker Update', phase: 'Report Writing', effort: 'medium' }
     ),
 ])
