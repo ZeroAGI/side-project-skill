@@ -759,12 +759,20 @@ const archiveIndexMd = [
 phase('Cross-Analysis')
 log('Analyzing cross-channel patterns and scoring opportunities...')
 
+// 2026-07-31 事故：交叉分析 prompt 内联全部信号逐字文本（含 top_comments）达 10.6 万字符，
+// agent 连续 6 次在输出中途停滞并交回空的 StructuredOutput{}，整场 2.7 小时扫描无法产出报告。
+// 与 07-28 对报告 agent 的处理同构：分析阶段只吃截断摘要（丢掉 top_comments，description/原话截断），
+// 需要逐字证据时按机会去 Read sources/ 归档文件。
+const cut = (s, n) => {
+  const v = String(s || '').replace(/\s+/g, ' ')
+  return v.length > n ? v.slice(0, n) + '…' : v
+}
+
 const signalSummary = validSignals
   .map((s) => {
     const lines = s.signals.map((sig) => {
-      let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + sig.title + ': ' + sig.description
-      if (sig.user_quote) line += ' — "' + sig.user_quote + '"'
-      if (sig.top_comments && sig.top_comments.length) line += ' — 评论区: ' + sig.top_comments.map((c) => '"' + c + '"').join(' / ')
+      let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + cut(sig.title, 110) + ': ' + cut(sig.description, 200)
+      if (sig.user_quote) line += ' — "' + cut(sig.user_quote, 140) + '"'
       if (sig.source_url) line += ' (' + sig.source_url + ')'
       return line
     })
@@ -772,7 +780,10 @@ const signalSummary = validSignals
   })
   .join('\n\n')
 
-const analysis = await agent(
+// 单点失败同样会报废整场扫描（2026-07-31：分析 agent 6 次停滞 → 无报告），故加 3 次重试。
+let analysis = null
+for (let anaAttempt = 1; anaAttempt <= 3 && !analysis; anaAttempt++) {
+analysis = await agent(
   `You are a startup opportunity analyst. Analyze these signals from today's demand discovery scan (${today}).
 ${hotTopics.length ? `\nBreaking events auto-detected this run (their deep-dive signals are included below — weigh them as fresh, high-salience context): ${hotTopics.map((t) => t.topic).join('; ')}\n` : ''}
 ## ALL SIGNALS COLLECTED TODAY
@@ -802,14 +813,23 @@ For each opportunity: name, one_liner, target_user, all 6 dimension scores, comp
 
 EVIDENCE WEIGHTING: Signals tagged [二手转述] are secondhand (SEO aggregators / blog paraphrases) — their numbers are unverified. An opportunity whose KEY evidence is entirely secondhand must be scored more conservatively (cap pain/market scores at 4) and its cross_validation must say so explicitly. Cross-validation only counts as independent when the underlying primary sources differ — three blogs paraphrasing the same survey is ONE source, not three.`,
   {
-    label: 'Cross-Analysis',
+    label: anaAttempt > 1 ? `Cross-Analysis (retry ${anaAttempt})` : 'Cross-Analysis',
     phase: 'Cross-Analysis',
     schema: ANALYSIS_SCHEMA,
-    effort: 'high',
+    effort: anaAttempt > 1 ? 'medium' : 'high',
   }
-)
+).catch((e) => {
+  log(`⚠ Cross-Analysis attempt ${anaAttempt}/3 failed (${String((e && e.message) || e).slice(0, 140)})`)
+  return null
+})
+  if (!analysis && anaAttempt < 3) log('↻ retrying Cross-Analysis at lower effort')
+}
+if (!analysis) {
+  log('🔴 Cross-Analysis failed 3× — signals are archived in sources/, aborting before report')
+  throw new Error('Cross-Analysis failed after 3 attempts; archives intact under reports/' + today + '/sources/')
+}
 
-log(`Identified ${analysis ? analysis.opportunities.length : 0} opportunities`)
+log(`Identified ${analysis.opportunities.length} opportunities`)
 
 // ── Phase 3: Report Writing ──────────────────────────────────────────────────
 
