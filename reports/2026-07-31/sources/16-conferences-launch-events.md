@@ -1,7 +1,8 @@
 # 16 — 行业大会 + 重大发布会 (WAIC/IO/WWDC/云栖/智源) 2026-07-31
 
-> 组内信号：10 条 | 二手转述：4 条（40%）
-> 最强证据线：WAIC 2026（7/17–20 上海）是本周唯一的旗舰级大会，官方一手页面 + chinadaily/亿邦一手报道均可核，"300+ 全球首发 + AI Agent 应用元年"是主旋律。渠道故障：一次中文搜索（云栖/智源）被日本花火大会页面污染，判定为 SEARCH CHANNEL 局部故障，未采信；Reuters/BusinessInsider/Yahoo/opendatascience 四个域名 WebFetch 被 403 或平台拒绝，已改用可达一手/近一手源。
+> 组内信号：16 条 | 二手转述：7 条（44%）
+> 最强证据线：本月是"三场旗舰叠加"——WAIC 2026（7/17–20 上海，官方一手页可核：1117 家展商 / 351 项全球首发 / 409 亿签约）、AMD Advancing AI 2026（7/22–23 旧金山，官方新闻稿：Helios 满产 + ROCm.ai 原生接 Claude/Codex/Cursor）、以及 7/24 的 231 家联署《Open Weights and American AI Leadership》。三者指向同一件事：竞争杠杆从"模型最强"移到"每美元 token 与谁的生态"，并在 7/30 OpenAI 对 Luna 降价 80%（HN 568 分 / 369 评论）上得到财务确证。
+> 渠道情况：WebSearch 本次未出现污染（各查询返回结果与查询词相关）。WebFetch 403 的域名：itwire.com、openai.com/index/*（两次）、techflowpost.com —— 已全部改用可达一手源（ir.amd.com、microsoft.com、HN Algolia API）替代。HN 上 AMD Helios 相关帖最高仅 6 分 3 评论，开发者社区对 Helios 的实际关注度远低于发布会声量，这本身是一条负面信号。
 
 ---
 
@@ -112,3 +113,74 @@
 - **user_quote**: ""
 - **top_comments**: []
 - **ai_opportunity**: Bedrock AgentCore 生态成型意味着"托管 Agent 运行时"成为云原生能力——indie 可预研在 AgentCore 上的垂直 agent 模板与迁移工具。
+
+## 11. AMD Advancing AI 2026（7/22–23 旧金山）：Helios 满产 + ROCm.ai 直接接 Claude/Codex/Cursor
+- **type**: trend | **platform**: ir.amd.com (官方新闻稿) | **secondhand**: false
+- **source_url**: https://ir.amd.com/news-events/press-releases/detail/1294/aai-2026-amd-delivers-full-stack-compute-for-the-agentic-ai-era
+- **source_date**: 2026-07-23 | **fetched_at**: 2026-07-31
+- **metrics**: Helios 机架 = 72× Instinct MI455X + 18× 第六代 EPYC "Venice" + Pensando 网络；对比 NVIDIA Vera Rubin NVL72 声称每美元推理 token 多 30%（Kimi K2 Thinking 32K/8K 自测）；MI455X 对 MI355X token 吞吐 34×（Deepseek V4 Flash FP4）；MI350P 对竞品每美元 tok/s 达 4.2×（Llama 3.3 70B FP8）；EPYC 9996 = 256 核/512 线程；MI430X FP64 硬件算力 288 TFLOPS；AMD 称 2030 年 TAM ~$2 万亿；路线图 MI500（2027）/MI600（2028）；一份报道称单机架售价 $5.25M
+- **description**: AMD 在 Advancing AI 2026 一次性放出 Helios 机架级系统（已满产、数月内出货）、第六代 EPYC、Instinct MI400 系列、Ryzen AI Embedded X100、Kria 机器人开发平台。对 indie/开发者最关键的是 ROCm.ai：一个 AI 驱动的开发平台，让编码 agent（明确点名 Claude、Codex、Cursor）原生操作 AMD 平台与 ROCm，PyTorch/HF/vLLM/SGLang 已跑在 MI455X 上，OpenAI Triton 也在与 ROCm 对接。合作方名单包含 Anthropic（2GW）、OpenAI（Q4 2026 上线 Helios）、Meta、AT&T、Cisco、Cerebras。注：所有性能数字均为 AMD 自测口径。
+- **user_quote**: "The next phase of AI will span frontier models, agents and physical AI"（AMD 董事长兼 CEO 苏姿丰）
+- **top_comments**:
+  - [ir.amd.com / Lisa Su] "AMD is partnering across the ecosystem to deliver leadership compute and open platforms."
+  - [HN 2026-07-24 / theregister 提交帖标题] "AMD attacks the rack with Helios systems that rival Nvidia's"（4 分 2 评论，社区关注度极低）
+- **ai_opportunity**: ROCm.ai 把"让编码 agent 会写 AMD 后端"变成官方能力 = CUDA 锁定第一次出现可编程缺口。indie 机会在 CUDA→ROCm 迁移辅助/kernel 移植评测、跨厂商推理成本对比路由（30% 每美元差价足以驱动切换）、以及 Kria 机器人平台上的具身开发工具。风险：HN 上 Helios 相关帖最高仅 6 分/3 评论，开发者社区尚未跟进，实际生态成熟度远落后于发布会口径。
+
+## 12. 「Open Weights and American AI Leadership」：231 家签署，Anthropic 缺席
+- **type**: trend | **platform**: microsoft.com (联合声明官方托管页) | **secondhand**: false
+- **source_url**: https://www.microsoft.com/en-us/corporate-responsibility/topics/open-weight/
+- **source_date**: 2026-07-24（签署名单更新至 2026-07-30） | **fetched_at**: 2026-07-31
+- **metrics**: 231 家具名签署方（NVIDIA、Microsoft、Meta、Palantir、Google、OpenAI、Amazon、AMD、Intel、Hugging Face、Y Combinator、Vercel、Replit、Ollama、LM Studio、LangChain、Cloudflare、Databricks、Stack Overflow 等）；Anthropic 明确未签；HN 讨论帖（NVIDIA PDF 版）112 分 2 评论
+- **description**: 一份跨 231 家公司的联合政策声明，要求美国政策避免"对开放模型的过早限制"。核心论点：AI 领导力不由单个前沿模型决定，而看开放生态能否扩散到工厂、医院、农场、教室；开放权重带来的是可下载、可检视、可改、可自托管；闭源模型集中会形成"少数单点故障"。政策诉求包括扩大算力可得性、投资共享数据集与评测框架。还专门为"蒸馏"辩护，要求不要把正当模型开发手段与非法窃取混为一谈。Anthropic CEO 公开反对，理由是网络安全风险。注意签署方多为直接受益者（云厂/芯片/开源工具），存在利益立场。
+- **user_quote**: "AI models that anyone can download, inspect, modify, and run on their own infrastructure."（声明对开放权重的定义）
+- **top_comments**:
+  - [声明原文] "America wins the AI era by diffusing it into the workflows of factories, hospitals, farms, classrooms, and main street businesses."
+  - [声明原文] 闭源模型 "can be breached, misused, or fail in ways that outsiders cannot detect"，集中会造就 "a small number of single points of failure"
+  - [HN 2026-07-29 / nedruod, Anthropic 立场帖] "The China point cuts both ways though."
+- **ai_opportunity**: 231 家里绝大多数是工具/基础设施公司而非模型公司——这份名单本身就是"开放权重工具链"的市场地图。indie 顺风方向：自托管权重的部署/更新/评测工具、开放模型的合规与审计层（声明要求"protections tied to real and demonstrated harms"意味着未来会有可证明危害的评测需求）、以及蒸馏合法性带来的小模型定制服务。
+
+## 13. OpenAI 7/30 降价 80%：Luna $0.20/$1.20，发布 3 周即腰斩
+- **type**: trend | **platform**: news.ycombinator.com（讨论）+ openai.com（原公告） | **secondhand**: false
+- **source_url**: https://news.ycombinator.com/item?id=49112867
+- **source_date**: 2026-07-30 | **fetched_at**: 2026-07-31
+- **metrics**: HN 帖 568 分 / 369 评论（2026-07-30 17:15 UTC 提交）；GPT-5.6 Luna 降 80%：输入 $1.00→$0.20/M、输出 $6.00→$1.20/M；Terra 降 20% 至 $2.00/$12.00 per M；Sol 不变但新增 Fast mode；Luna 7/9 才发布，降价距发布约 3 周；Amazon Bedrock 同日跟进同等降幅；降价同样作用于 Codex 与 ChatGPT Work 的订阅额度计量
+- **description**: OpenAI 在 7/30 对 GPT-5.6 系列做了一次幅度罕见的降价，发布到腰斩只隔三周。HN 上 369 条评论几乎一致把原因指向竞争而非成本优化——中国开放权重模型（Kimi K2.5/K3、GLM）的价格压力被反复提及。这是"best fit wins"从分析口径变成实际财务事件的一次确证：模型能力不再是唯一杠杆，价格战已经开始。
+- **user_quote**: "there is a ton of downward price pressure from Chinese open weight models"（HN visiondude, 2026-07-30）
+- **top_comments**:
+  - [HN / __jl__ 2026-07-30] 从 Fireworks 托管的开放权重（Kimi K2.5）切回 OpenAI，理由是可靠性与性价比 —— "Luna pricing is crazy now."
+  - [HN / dannyw 2026-07-31] 小模型当执行器足够用："even a recent 27-30B open weight model will usually do an excellent job"（前提是给它详细计划）
+  - [HN / mlinsey 2026-07-30] 客户多供应商化 + 效率红利未尽，是 "a great reason to drop prices on your non-frontier offerings"
+  - [HN / throwaway63467 2026-07-31] 预测除非监管偏袒闭源，多数工作会因价格转向开放权重："with these models transparency is no issue"
+- **ai_opportunity**: 输出 token 降到 $1.20/M 让此前算不过账的品类（长文批处理、全量日志摘要、每用户每天多次 agent 循环）一夜之间可行。indie 应立刻重算成本模型；同时"计划者用贵模型 + 执行者用便宜/开源模型"的分层编排（HN 高赞共识）缺现成工具，是明确的产品位。
+
+## 14. TechCrunch Disrupt 2026（10/13–15 旧金山）：议程把「agent 安全」定为未解问题
+- **type**: trend | **platform**: techcrunch.com (一手) | **secondhand**: false
+- **source_url**: https://techcrunch.com/2026/07/29/discover-whats-next-for-ai-from-the-saas-reckoning-to-the-agent-security-gap-at-techcrunch-disrupt-2026/
+- **source_date**: 2026-07-29 | **fetched_at**: 2026-07-31
+- **metrics**: 10/13–15 Moscone Center；10,000+ 创业/科技/VC 参会者；AI Stage 由 Google for Startups 冠名；已公布场次讲者含 Databricks 联创 Arsalan Tavakoli、Decart CEO Dean Leitersdorf、Luma AI CEO Amit Jain、Clay CEO Kareem Amin
+- **description**: 未来 30 天外但议程本身是需求信号：三条主线分别是企业 AI 安全（可观测性/治理/可信部署架构）、视频智能从 demo 走向实时推理与物理推理、以及「GTM Engineer」这个两年前不存在、现已成为科技业增速最快岗位之一的新职类（含单人跑百万美元生意的 solo operator）。TechCrunch 直接断言 agent 安全需要从基础设施重建而非边缘打补丁。
+- **user_quote**: "agent security has to be rebuilt from the infrastructure up"（TechCrunch 议程文案）
+- **top_comments**:
+  - [techcrunch / 场次标题] "The Enterprise Isn't Broken. Your Assumptions About It Are."
+  - [techcrunch / GTM Engineer 场次] 该岗位 "didn't exist two years ago"，现已是科技业增速最快的职类之一
+- **ai_opportunity**: 两个明确缺口：(1) agent 在敏感企业系统内自主调用的可观测性/权限/审计层 —— 大会自己承认现有框架跟不上；(2) GTM Engineer 工具链 —— 一个刚成型的岗位通常还没有专用工具，solo operator 场景尤其适合 indie。
+
+## 15. Ai4 2026（8/4–6 拉斯维加斯）：未来 30 天内最大企业 AI 落地展
+- **type**: trend | **platform**: ai4.io / prnewswire (官方+厂商稿) | **secondhand**: true
+- **source_url**: https://ai4.io/
+- **source_date**: 2026-07（预告） | **fetched_at**: 2026-07-31
+- **metrics**: 8/4–6 The Venetian，第八届；官方口径 12,000+ 参会者、1,000+ 讲者、400 家展商/赞助商、覆盖近 100 万平方英尺；参会国家数各稿口径不一（90+ / 85+）；第三方 Vendelux 估算实际约 9,000 名企业 AI 从业者与高管 —— 与官方数字有明显落差
+- **description**: 未来 30 天窗口内最大的一场 AI 大会（距今 4 天），定位企业落地而非模型发布：议程围绕商业、政府、医疗、制造、金融、教育。厂商侧口径高度集中在"把 AI 从 pilot 推进 production"（如 NetApp）。数字主要来自 Ai4 自家新闻稿，唯一独立对照（Vendelux）低约 25%，引用时应保留区间。
+- **user_quote**: ""
+- **top_comments**: []
+- **ai_opportunity**: "pilot → production"是本届最集中的厂商叙事，说明大量企业卡在试点阶段。indie 可切入的是 pilot 与生产之间那段落差：评测/回归测试、成本可预测性、上线前的合规检查清单 —— 这些正是大厂稿件承认还没解决的。
+
+## 16. 秋季旗舰窗口已定档：OpenAI DevDay 9/29、Meta Connect 9/23–24、IJCAI-ECAI 8/15–21
+- **type**: trend | **platform**: meta.com / openai.com（官方预告） | **secondhand**: true
+- **source_url**: https://www.meta.com/connect/
+- **source_date**: 2026-07（预告） | **fetched_at**: 2026-07-31
+- **metrics**: OpenAI DevDay 2026：9/29 旧金山；Meta Connect 2026：9/23–24 门洛帕克（晚间 keynote + 开发者场次，覆盖 VR/可穿戴/元宇宙/AI）；IJCAI-ECAI 2026：8/15–21 德国不来梅；参照 DevDay 2025 曾一次放出 Apps in ChatGPT + Apps SDK、AgentKit、Sora 2 API、Codex GA、GPT-5 Pro、gpt-realtime-mini、gpt-image-1-mini
+- **description**: 未来 30–60 天的旗舰日程已明确，DevDay 是对 indie 影响最直接的一场：去年同一场发布会一次性重置了"ChatGPT 上做应用"的分发格局（Apps SDK）与 agent 构建栈（AgentKit）。注：DevDay 官方页 WebFetch 返回 403，日期来自搜索结果对官方公告的引用，故标 secondhand。
+- **user_quote**: ""
+- **top_comments**: []
+- **ai_opportunity**: DevDay 是"平台风险日"也是"分发机会日"——凡是产品形态可被 Apps SDK / AgentKit 一次性吸收的 indie 项目，应在 9/29 前把差异化护城河（专有数据、工作流深度、合规）做实；反之围绕新 SDK 抢首发生态位的窗口通常只有发布后几周。

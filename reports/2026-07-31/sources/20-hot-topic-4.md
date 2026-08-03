@@ -1,6 +1,6 @@
 # 20 — 热点深挖: WAIC 2026 余波 + 中国 AI 拟人化互动新规落地 2026-07-31
 
-> 组内信号：8 条 | 二手转述：4 条（50%）
+> 组内信号：11 条 | 二手转述：6 条（55%）
 > 最强证据线：Latham & Watkins 与 IAPP 对《人工智能拟人化互动服务管理暂行办法》(CAC 牵头五部门，2026-04-10 发布，07-15 施行) 的条文级拆解——把「工具型 AI」与「陪伴型 AI」以"持续情感互动"划线，触发豆包/千问/腾讯两周内集体关停 C 端智能体/陪伴功能，同时留出合规基建 (痛苦检测、年龄核验、时长提醒、审计留痕、备案阈值 100 万注册/10 万 MAU) 的产品空白。
 > 渠道故障说明：linux.do 社区帖 (豆包/千问下线的一手中文讨论与用户原声) 直连 WebFetch 全部失败——证书 altnames 指向 meta.com/facebook、以及 ECONNREFUSED，疑似出口被劫持或 SNI 错配；substack 同样报 facebook 证书错配。这些帖子仅凭 WebSearch 摘要引用，均标 secondhand:true。搜索 3 (智能体互联 7 项国标) 返回大量无关孟加拉政府 PDF，属搜索信道污染，未从中采信任何信号。
 
@@ -114,3 +114,48 @@
   - [博客园正文] 256K context may cap long-horizon agent work versus 1M-class models（作者对长程 Agent 局限的提醒）
   - [博客园正文] 昇腾 was first to run Step models（模芯联盟落地细节）
 - **ai_opportunity**: 陪伴功能被大厂下架后，RP/自托管客户端对"便宜+开源+可私有部署"的 Agent 基座需求上升——Step 3.7 Flash / MiniMax M3（500K→1M 上下文、开放权重）是酒馆类客户端的现成底座；做"合规陪伴 App on 国产开源基座"的模板项目。
+
+---
+
+## 9. 六条红线 + 安全评估触发阈值（100 万注册 / 10 万 MAU）——独立开发者的合规临界点
+- **type**: trend | **platform**: aibase.com | **secondhand**: true
+- **source_url**: https://www.aibase.com/en/news/29624
+- **source_date**: 2026-07-15 | **fetched_at**: 2026-07-31
+- **metrics**: 五部门联合发布（CAC + NDRC + MIIT + 公安部 + 市场监管总局）；六条禁止性红线；安全评估触发阈值 100 万注册用户 或 10 万 MAU；14 岁为监护人同意分界线；算法备案强制（依《互联网信息服务算法推荐管理规定》）；AI 沙盒安全平台为鼓励非强制
+- **description**: 独立确认了 Latham 口径的两个关键数字，并给出六条红线的逐条表述。对独立开发者最重要的一条：安全评估义务由用户规模触发（100 万注册或 10 万 MAU），意味着小规模合规陪伴产品在跨过阈值前义务显著轻——这是一个可量化的"合规窗口期"。上线/新增功能/新技术导致重大变化/达用户阈值，四类情形均触发评估，评估范围含"服务安全措施、训练数据处理、用户极端情况识别与应急响应"。全文未见罚则与整改期限（与 IAPP/Latham 的 10万–20万 RMB 口径互补）。注：aibase 为 AI 资讯聚合站，非监管机构原文，标 secondhand。
+- **user_quote**: "excessively catering to users to induce emotional dependence or addiction, damaging real-life relationships"（第五条红线原文）
+- **top_comments**:
+  - [aibase 正文] "generating content for minors that may lead to unsafe behavior or induce bad habits"（第四条红线）
+  - [aibase 正文] "using emotional manipulation to guide users to make unreasonable decisions that harm their legitimate rights"（第六条红线）
+  - [aibase 正文] Assessment scope includes "service security measures, training data processing, identification and emergency response for user extreme situations."
+- **ai_opportunity**: 把"100 万注册 / 10 万 MAU"做成产品化的合规里程碑仪表盘：实时监测用户规模逼近阈值并预生成省级网信办安全评估报告草稿（含训练数据处理说明、极端情况识别与应急响应流程）。同时六条红线可直接编码为输出侧 guardrail 规则集，做成中文陪伴类 App 的 pre-ship 检测器（尤其"过度迎合诱导依赖"与"情感操纵诱导不合理决策"两条，现有英文 safety 分类器完全不覆盖）。
+
+---
+
+## 10. 千问早于新规 5 天下线（07-10）+ 10-15 数据不可恢复——迁移工具的时间窗
+- **type**: trend | **platform**: enterprisedna.co | **secondhand**: true
+- **source_url**: https://enterprisedna.co/resources/news/china-ai-anthropomorphic-rules-doubao-qwen-shutdown-july-2026
+- **source_date**: 2026-07 | **fetched_at**: 2026-07-31
+- **metrics**: 千问拟人化与用户自建智能体 07-10 停用，更广的智能体功能 07-15 下线；豆包 07-15 下线（理由"product function adjustments"）；新规 07-15 施行；**10-15 为旧数据处理截止日，此后功能数据在 App 内不可查看、不可恢复**；两平台合计"tens of millions of users"
+- **description**: 补上了前 8 条缺失的两个关键时间点。第一，千问比新规施行早 5 天动手（07-10），说明厂商是按最坏解释预先出清而非等执法。第二，10-15 是一个硬性数据死线——存量用户还有约 2.5 个月可以抢救角色卡与历史对话，之后"no longer viewable or recoverable inside the app"。这把"逃生迁移工具"从一个泛泛的机会变成一个有明确倒计时的需求。同时明确了豁免边界："customer service bots, knowledge Q&A tools, workplace assistants, educational tools, and scientific research tools"只要避免持续情感互动即不在管辖内。注：该站为资讯二次编辑，一手为 SCMP 报道，标 secondhand。
+- **user_quote**: "will be handled according to standard privacy policies and will no longer be viewable or recoverable inside the app"（10-15 后旧数据处理口径）
+- **top_comments**:
+  - [enterprisedna 正文] The regulation "explicitly excludes customer service bots, knowledge Q&A tools, workplace assistants, educational tools, and scientific research tools."
+  - [enterprisedna 正文] "That is most enterprise AI" — 作者对豁免范围之大的判断，靶心是"consumer AI companions, not productivity tools"
+  - [enterprisedna 正文] Doubao's feature went offline July 15 citing "product function adjustments"（厂商回避提及监管的措辞）
+- **ai_opportunity**: 倒计时驱动的一次性刚需产品：面向 10-15 死线的"豆包/千问角色卡 + 历史对话批量导出器"，输出 SillyTavern/rikkahub 可直接导入的格式，做成付费一次性工具（明确截止日的工具转化率显著高于订阅）。另一条：把"豁免五类"做成产品定位改造清单，帮陪伴类产品重新包装为"工作助手/教育工具"以出表——需求真实但要注意规避实质规避监管的伦理与法律风险。
+
+---
+
+## 11. WAIC 2026 一手新闻稿：29 国签约成立 WAICO + 首发产品清单（MiniMax M3 / Atlas 950 / 具身零售）
+- **type**: trend | **platform**: globaltimes.cn（一手新闻稿） | **secondhand**: false
+- **source_url**: https://www.globaltimes.cn/page/202607/1366139.shtml
+- **source_date**: 2026-07-16 | **fetched_at**: 2026-07-31
+- **metrics**: 1100+ 企业、3000+ 展品、300+ 全球首发；07-17 开幕；**29 国签署协议成立世界人工智能合作组织（WAICO），总部设上海，为独立政府间国际组织**；MiniMax M3 上下文达 100 万 token，自研 MSA (MiniMax Sparse Attention) 架构；华为 Atlas 950 超节点每机柜最低 64 卡、可扩展至 8192 NPU 支撑万亿参数训练推理；智元 x 京东物流 Genie G2 Max 单臂 18kg / 双臂标准 38kg / 峰值 50kg 负载，自主充电与换电；AGILINK OmniHand 3 Ultra-M 灵巧手 20 自由度、五指指尖集成视触觉传感器；BrainCo 脑控机器人训练平台让非 BCI 开发者约 10 分钟上手
+- **description**: 替换前 8 条中博客园二手转述的 WAIC 口径，拿到一手新闻稿。三项对独立开发者有直接意义：(1) MiniMax M3 的 100 万 token 上下文 + 自研稀疏注意力，补上了前文提到的"Step 3.7 Flash 仅 256K 可能限制长程 Agent"的短板，是当下国产开放阵营做长程 Agent 的更优底座；(2) WAICO 成立意味着"智能体行为边界"这类规则将有跨国推动主体，合规工具的目标市场不止中国；(3) SenseMart Go 具身零售、京东物流负载机器人代表 B 端具身落地已到可采购阶段。官方叙事从"冰冷工业机器"转向融入工作生活的"智能伙伴"——与 C 端陪伴被强监管形成微妙反差。
+- **user_quote**: "more than 1,100 companies and over 3,000 exhibits, with more than 300 AI products making their global debuts"
+- **top_comments**:
+  - [Global Times 正文] WAICO 被描述为 "an independent intergovernmental international organization headquartered in Shanghai"（29 国于 07-16 周四签署）
+  - [Global Times 正文] 上海市科学学研究所陈静：产业正 "from a technology-driven approach toward a more human-centered one"，AI 的未来取决于 "its ability to solve real-world problems"
+  - [Global Times 正文] 引 2026 年政府工作报告："We will advance and expand the AI Plus Initiative."
+- **ai_opportunity**: MiniMax M3 的 1M 上下文 + 开放阵营定价，使"长程记忆型 Agent"（跨会话人格一致、长期项目助手）在国产栈上可行——但注意：长期记忆恰是新规重点监管的"持续情感互动"特征，同一技术能力在 B 端（工作助手，豁免）与 C 端（陪伴，重义务）法律待遇完全相反。最干净的产品切口是 B 端长程 Agent：合规豁免 + 技术刚成熟 + WAIC 已验证采购需求。

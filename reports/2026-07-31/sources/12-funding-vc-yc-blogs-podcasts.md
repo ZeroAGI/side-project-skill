@@ -1,7 +1,9 @@
 # 12 — Funding + VC + YC + Blogs + Podcasts 2026-07-31
 
-> 组内信号：11 条 | 二手转述：3 条（27%）
-> 最强证据线：TechCrunch/Crunchbase 一手融资报道 + a16z/YC 官方投资论述，主题高度收敛于「AI 进入物理世界与受监管工作流」「推理经济学」「人机信任层（bot/AI 内容检测 + proof-of-human）」。渠道故障：YC 公司目录（JS 渲染）WebFetch 返回空，改用 WebSearch + 官方 RFS 页回补；「My First Million/All-In/Acquired」搜索被 MFM 垄断、All-In 与 Acquired 零覆盖且多为聚合摘要站，故不作为一手信号收录。
+> 组内信号：15 条 | 二手转述：2 条（13%）
+> 最强证据线：TechCrunch/Crunchbase 一手融资报道 + a16z/YC 官方投资论述，主题高度收敛于「AI 进入物理世界与受监管工作流」「推理经济学」「人机信任层（bot/AI 内容检测 + proof-of-human）」「资本极端集中化」。本次补录 #12-#15（Runlayer v. Rippling 首例 MCP 诉讼、H1 2026 十亿美元轮集中度、a16z Top 100 Gen AI Apps 第六版、种子/A 轮巨型化），均为一手页面核验。
+> 渠道故障：YC 公司目录（`/companies?batch=Summer 2026`）为 JS 渲染，WebFetch 两次仅返回页面标题，改用 YC 官方 blog + RFS 页 + WebSearch 回补。TechCrunch Dili 一文的 URL slug 为 `raises-15-million` 而标题为 $21.7M（A 轮 vs 累计口径差异，非数字冲突），首次按标题猜测 slug 触发 404，经搜索定位后核验。搜索渠道本次工作正常（返回结果与查询词相关，无 2026-07-28 那类污染）。
+> 未收录：「My First Million / All-In / Acquired」仅通过搜索摘要获得剧集标题与日期，可达页面均为 podscripts/rova.nz 等转录聚合站，未能核验一手 show notes，故按「未见页面不引用」原则不作为信号收录（All-In 7 月确有多期 AI 主题：开源 AI 之争、AI 行业能否自律、AI 颠覆语音/法律与计费小时制）。
 
 ---
 
@@ -134,3 +136,53 @@
 - **top_comments**:
   - [aifundingtracker 综述] 资本集中于 physical AI（机器人/感知/可穿戴）+ 受监管场景的 agentic AI
 - **ai_opportunity**: physical AI 与 AI 可穿戴是硬件资本重仓方向；中国战略资本（美团/腾讯）在硬件分发上有优势。软件侧机会有限，但为「AI+实体」应用层提供硬件底座信号。
+
+## 12. 首例 MCP 诉讼：Runlayer 诉 Rippling 克隆其 MCP gateway
+- **type**: pain_point | **platform**: techcrunch.com | **secondhand**: false
+- **source_url**: https://techcrunch.com/2026/07/28/mcp-startup-runlayer-accuses-rippling-of-stealing-its-product-idea/
+- **source_date**: 2026-07-28 | **fetched_at**: 2026-07-31
+- **metrics**: Runlayer 累计融资 $42M（Khosla Ventures、Felicis 支持），产品 2024 年中商用上线；Rippling 估值 $13.5B；诉由为商业秘密侵占、不正当竞争、违约，2026-07-28 递交 SDNY 并申请初步禁令，代理律所 Sullivan & Cromwell；双方签有互相 NDA 与禁止复制/衍生作品的试用协议
+- **description**: MCP（Anthropic 2024 年 11 月开源）网关赛道的第一起诉讼。Runlayer 称 Rippling 以潜在买方身份评估近一年、期间获得其路线图与源代码，价格谈崩、试用终止后，一名 Rippling 内部人士给 CEO Andrew Berman 发短信称公司在内部造 Runlayer 的克隆。Rippling 承认在发自己的 MCP gateway，但否认 IP 指控。对独立开发者的意义：把源代码/路线图交给体量大 300 倍的潜在收购方做 POC，是 agent 基础设施层的结构性风险。
+- **user_quote**: "a project internally to build essentially a clone o[f] Runlayer"（Runlayer 诉状引述的 Rippling 内部人士短信）
+- **top_comments**:
+  - [Runlayer 诉状] 双方关系历时 "nearly a year of intensive engineering collaboration."
+  - [Rippling 回应] 称自己在 "launching a superior product for connecting AI tools to business data using only our proprietary information."
+  - [Rippling 回应] 称诉讼是 "panicked effort to avoid competition by fabricating claims."
+- **ai_opportunity**: 反向机会：面向小团队的「POC 期 IP 留痕/代码水印/访问审计」工具（谁在何时看了哪段代码与路线图），以及标准化的 agent 基础设施试用协议模板。同时印证 MCP gateway 本身已是有人愿意打官司争夺的赛道。
+
+## 13. Crunchbase：H1 2026 六成融资流入十亿美元级单轮，两笔占美国过半
+- **type**: trend | **platform**: news.crunchbase.com | **secondhand**: false
+- **source_url**: https://news.crunchbase.com/venture/billion-dollar-plus-round-counts-rising-ai-fintech-healthcare-h1-2026/
+- **source_date**: 2026-07-23 | **fetched_at**: 2026-07-31
+- **metrics**: 全球年初至今 60%（约 $320B）融资进入 $1B+ 单轮；美国比例 73%（$290B），其中 OpenAI 与 Anthropic 两笔就占美国该口径一半以上；美国 2026 已知 $1B+ 轮 23 笔，剩余约 5 个月已追平创纪录的 2025；23 笔中仅 2 笔属种子/早期（Prometheus、World Labs）；全球 H1 2026 创投总额创纪录 $510B；2025 全年 AI 融资 $212B（同比 +85%）
+- **description**: 作者 Joanna Glasner。历史参照：美国首个十亿级轮是 2014 年 Uber $1.2B D 轮，其后三年 SpaceX/Airbnb/Lyft/Snap/Grail/WeWork/Argo AI 等跟进，结果分化明显（Argo AI 与 WeWork 失败，Grail 混合）。OpenAI 与 Anthropic 均已保密递交 IPO 申请。含义：总量创纪录但极端集中，中位数公司的融资环境并不等于头条数字。
+- **user_quote**: 早期巨型轮的教训是，押注强势独角兽可以奏效，但 "far from a sure bet."
+- **top_comments**:
+  - [Crunchbase] 当前周期已延伸到 "tens of billions or even over $100 billion" 的单轮
+  - [Crunchbase] 2026 年前，十亿级轮占融资比例一直是少数，唯一例外是 OpenAI 融 $40B 的 2025 Q1
+- **ai_opportunity**: 对小团队的实际读法：头部资本被两三家实验室吸走，应用层与工具层反而竞争者更少、更依赖真实营收。适合做「资本集中度 vs 细分赛道空白」的选题雷达。
+
+## 14. a16z Top 100 Gen AI Apps 第六版：ChatGPT 一家独大，但连接器生态成新锁定点
+- **type**: product_market | **platform**: a16z.com | **secondhand**: false
+- **source_url**: https://a16z.com/100-gen-ai-apps-6/
+- **source_date**: 2026-03-09 | **fetched_at**: 2026-07-31
+- **metrics**: 方法论：Web 按 SimilarWeb 月独访、Mobile 按 Sensor Tower MAU，数据截至 2026 年 1 月。Web：#1 ChatGPT（流量为 Gemini 的 2.7x）、#2 Gemini、#15 Suno、#25 Google Labs（前值 #36）、#46 Midjourney（曾首发进前十）。Mobile：#1 ChatGPT（MAU 为第二名 2.5x）；Yandex Browser（内置 Alice）7100 万 MAU，列全球移动 AI 前十。ChatGPT 9 亿周活（同比 +5 亿）、美国付费订阅为 Claude 的 8x、Gemini 的 4x；Claude 付费订阅同比 +200%+、Gemini +258%；ChatGPT 连接器 220 个（13 类），Claude 约 160 个精选连接器 + 约 50 个社区 MCP server，仅 41 个重叠。Claude Code 6 个月达 $1B 年化；Codex 200 万周活、周增 25%
+- **description**: 作者 Olivia Moore。本版把入选范围从 AI-native 扩到「生成式 AI 为核心体验」的消费应用（纳入 CapCut/Canva/Notion/Picsart/Freepik/Grammarly）。三个结构性发现：一是默认助手之争未定，连接器生态而非模型能力成为锁定点，且 ChatGPT 偏消费交易（旅行/购物/餐饮）、Claude 偏专业场景（金融终端/开发基础设施/科学）；二是地理三极化，DeepSeek 是唯一跨越中俄美的产品，人均使用新加坡第一、美国仅第 20；三是创意工具从图像轮动到视频/音乐/语音（2023 年 9 个创意类 Web 入选中 7 个是图像生成，现仅 3 个），因为图像被 ChatGPT/Gemini 打包成勾选项，而 ElevenLabs 式语音能力 "haven't been replicated as a checkbox feature"。榜单本身低估了 AI 使用量——增长正转移到浏览器、桌面开发工具与嵌入式功能。注意：榜单以字母序发布 Top 50，除文中点名的名次外无法还原完整 #1-#50 排序。
+- **user_quote**: "As AI moves from a destination to a feature, our methodology will need to shift."
+- **top_comments**:
+  - [a16z] 预期终局更接近移动 OS 双寡头，而非搜索大战的单一赢家
+  - [a16z] 约 20% 的 ChatGPT 周活 Web 用户同时也在用 Gemini
+  - [a16z] OpenClaw（Peter Steinberger 的本地运行 agent）数周内 68,000 GitHub stars、3 月初成最高星项目、2026 年 2 月被 OpenAI 收购，但 Terminal 安装门槛使其难入主流
+- **ai_opportunity**: 最可操作的一条是「被打包成勾选项 vs 无法被打包」的判据：图像生成已被巨头内建吞掉，语音/音乐/视频尚未。选品应挑不能变成 checkbox 的能力。其次，Claude 连接器与 ChatGPT 仅 41 个重叠，说明 MCP/连接器生态存在大量单侧空白；移动端 agent 走 WhatsApp/Telegram/SMS 而非独立 app，是被低估的分发通道。
+
+## 15. Crunchbase：超四成种子/A 轮资金进入 $100M+ 巨型早期轮
+- **type**: trend | **platform**: news.crunchbase.com | **secondhand**: false
+- **source_url**: https://news.crunchbase.com/venture/seed-seriesa-startup-megadeals-ai-2026/
+- **source_date**: 2026-01-28 | **fetched_at**: 2026-07-31
+- **metrics**: 全球 2026 年种子与 A 轮资金中 40%+ 进入 $100M+ 单轮；美国口径超过一半。样本：Humans&（$480M 种子，年内最大，由 Google/Anthropic/xAI/OpenAI/Meta 研究者 9 月创立）、Ricursive Intelligence（$300M A 轮，$4B 估值）、Merge Labs（据报 $252M 种子，Sam Altman 创办的脑机接口，OpenAI 为主要出资方）、Mal（阿布扎比，$230M 首轮，BlueFive Capital 领投，AI 伊斯兰数字银行）、Upscale AI（$200M A 轮，AI 网络基础设施）
+- **description**: 作者 Joanna Glasner。趋势线：巨型早期轮在 2021 峰值附近增多、其后两年回落、2024 起回升、2026 急剧反弹。与本组 #8（Bison Ventures 的反驳：约 200 个 $100M+ 首轮中仅 20% 有退出、约 1% 达 10x MOIC）构成同一议题的正反两面证据。
+- **user_quote**: 种子轮的经典刻板印象是 "a small, risky bet on an unproven founder."
+- **top_comments**:
+  - [Crunchbase] "it's certainly gotten costlier for those writing the checks."
+  - [Crunchbase 脚注] 以 $100M+ 为「巨型」阈值，"although the pattern could be seen with some slightly different parameters."
+- **ai_opportunity**: 种子轮已分裂为两个市场：明星研究者的九位数轮，和其余所有人。对独立开发者意味着「先有营收再融资」的路径不是次优选择而是唯一现实路径，与 #8 的资本效率数据一致。
