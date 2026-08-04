@@ -1,6 +1,6 @@
 # 03 — AppSumo + ClawHub 2026-08-04
 
-> 组内信号：11 条 | 二手转述：0 条（0%）
+> 组内信号：13 条 | 二手转述：0 条（0%）
 > 最强证据线：AppSumo 买家评论（Letterly 353 评 / DM Champ 138 评 / Vexp 等 5 个 deal 的逐条 verbatim 深读）+ ClawHub 首页 Trending 榜下载数。渠道故障：ClawHub 单 skill 详情页为客户端渲染、抓取只返回站点外壳（已重试），per-skill 数据以首页 feed 为准；WebFetch 一次 429 限流（等待后恢复）；本组未动用 WebSearch。
 
 ---
@@ -129,3 +129,26 @@
 - **user_quote**: ""
 - **top_comments**: []
 - **ai_opportunity**: GEO 审计/监测工具（品牌在 ChatGPT/Perplexity 答案中的引用率追踪）尚是 LTD 市场空位；「无模板」文档解析（DigiParser 4.92 高分）验证了 schema-free 提取的付费意愿。
+
+## 12. ZeroRank AI（36 评 4.97★，88% off）：GEO 引用追踪工具在 LTD 渠道高速起量，验证信号 11 的空位正在被填
+- **type**: product_market | **platform**: AppSumo | **secondhand**: false
+- **source_url**: https://appsumo.com/products/zerorank-ai/reviews/
+- **source_date**: 空（评论跨 2026-07-30 至 08-02） | **fetched_at**: 2026-08-04
+- **metrics**: $69 LTD（原 $598，-88%），档位至 $1,699（Tier 7）；4.97 / 36 评（35 个五taco、0 个低于 4）；AppSumo Select
+- **description**: 追踪品牌在 AI 搜索中的引用（AI citations）、对标竞品并给可执行建议。评论一致夸数据深度与迭代速度；唯一实质抱怨是学习曲线（信息量太大）。AppSumo 官方 AI 摘要点到 "noisy brand auto-detection and citation export limits"。与 MultiLipi（信号 11）同属 GEO 类目——该品类在 LTD 渠道集中爆发，且 $69–$1,699 的档位跨度说明面向 agency 的高档位也在卖。
+- **user_quote**: "Its recommendations are based on a large volume of data rather than generic or superficial advice." — JuriyJ, 2026-07-30
+- **top_comments**:
+  - [AppSumo review, oyoyinc, 2026-07-31] "4 weeks later it has gone on leaps & bounds"
+  - [AppSumo review, Chris_D_UK, 2026-07-31] "It takes a bit of time to get your head around what it shows you (because there is a lot)"；"Owner is responsive and helpful (and very busy - so be patient)"
+  - [AppSumo review, james106, 2026-08-02] "Developer has been adding new features since launch"
+- **ai_opportunity**: GEO 数据→可执行动作的翻译层（降低学习曲线）、引用监控告警化/白标报告（agency 档位已验证付费）；品牌自动识别去噪是明确技术缺口。
+
+## 13. ClawHub API 目录：中国金融数据 skill 下载第一（4.2k），Scavio 七平台数据 API 家族 + playbook-as-a-skill 双模式跑通
+- **type**: product_market | **platform**: ClawHub | **secondhand**: false
+- **source_url**: https://clawhub.ai/api/v1/skills
+- **source_date**: 空（目录快照，各 skill 创建日期见 metrics） | **fetched_at**: 2026-08-04
+- **metrics**: investoday-finance-data 4,203 下载（2026-03-16 创建，已迭代至 v1.8.58，中国 A股/港股/基金/宏观 200+ 端点）；product-hunt-playbook 2,039；open-data-hub-cli 1,825；ai-shifu-course-creator 1,632；gingiris-user-interview 1,475；plg-playbook 1,412；beauty-diagram 1,100；Scavio 系（需 SCAVIO_API_KEY 计费）：amazon 928、walmart 842、youtube 818、tiktok 645、linkedin 116、x 113，合计约 3,460；gingiris-kol-outreach 925；新基建信号：nevermined-router（2026-08-03 上架，agent 经 x402/MPP 协议付费调用服务）
+- **description**: ClawHub 官方 API 目录（22 条一页，star/comment 几乎全为 0——平台反馈机制未被使用）揭示两类已验证需求：(1) 垂直数据接入 skill 化——中文金融数据 skill 下载全目录第一且高频迭代；Scavio 用同一模式把 Amazon/Walmart/YouTube/TikTok/X/LinkedIn 的「平台数据 API」按 key 计费卖进 agent 生态；(2) 方法论打包——PH 冲榜、PLG、用户访谈、KOL 外联等 SOP 型 skill 下载均破千，边际成本近零。另有 agent 原生支付路由（nevermined-router, x402）刚上架，agent 间商业闭环基建开始出现。
+- **user_quote**: ""
+- **top_comments**: []（目录级数据无评论；仅 investoday 与 scavio-amazon 各 2 star）
+- **ai_opportunity**: 可复制模式一：垂直数据源 skill 化按 API key 计费（中文金融已跑通，法律/医疗/跨境电商空白）；模式二：增长运营 SOP 打包成 skill（playbook-as-a-skill）。x402 agent 支付协议是值得跟踪的更早期基建信号。
