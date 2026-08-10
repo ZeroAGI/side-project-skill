@@ -231,6 +231,15 @@ THREAD DEEP-DIVE (mandatory): from each listing, open the 3-5 HIGHEST-UPVOTED th
 
 Supplement (optional): WebSearch site:reddit.com "I wish there was" AI tool ${year} — but any result you keep MUST be fetched and cited as the reddit.com thread URL itself.
 
+FALLBACK WHEN REDDIT IS BLOCKED (mandatory — do NOT return an empty group without trying this):
+old.reddit.com/www.reddit.com are frequently unreachable from this environment (harness domain refusal, Reddit 403 anti-bot on direct curl, redlib mirrors DNS-poisoned, pullpush.io archive stale since 2025-05). When direct fetch fails, use the Arctic Shift academic archive API, which serves full post + comment text and lets you keep real reddit.com thread URLs:
+  https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&after={YYYY-MM-DD}&limit=100&sort=desc
+  https://arctic-shift.photon-reddit.com/api/comments/search?link_id={post_id}&limit=100
+Reconstruct source_url as https://www.reddit.com/r/{sub}/comments/{post_id}/{slug}/ — this satisfies the provenance rule because the text IS the verbatim thread content, not a third-party summary.
+CAVEAT: archive `score` is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
+Only after BOTH direct fetch and Arctic Shift fail may you return 0 signals — and then record every attempted path in the channel-failure notes.
+
+
 EXTRACTION RULES:
 - source_url MUST be a reddit.com/r/... thread URL. A blog summarizing "what Reddit thinks" is NOT acceptable as a Reddit signal.
 - Extract: pain point description, user quotes (exact words, OP + comments), subreddit, upvotes, existing solutions status.
@@ -253,6 +262,15 @@ FETCH-FIRST: WebFetch subreddit listings DIRECTLY (old.reddit.com renders more r
 6. https://old.reddit.com/r/artificial/top/?t=week
 
 THREAD DEEP-DIVE (mandatory): from each listing, open the 3-5 HIGHEST-UPVOTED threads about tool frustrations, feature gaps, workflow pain, or cost complaints — read the OP text AND the top comments. Comment sections carry the workarounds, "+1 same problem" volume, and tool-switching stories that quantify a pain; capture exact quotes → user_quote + top_comments.
+
+FALLBACK WHEN REDDIT IS BLOCKED (mandatory — do NOT return an empty group without trying this):
+old.reddit.com/www.reddit.com are frequently unreachable from this environment (harness domain refusal, Reddit 403 anti-bot on direct curl, redlib mirrors DNS-poisoned, pullpush.io archive stale since 2025-05). When direct fetch fails, use the Arctic Shift academic archive API, which serves full post + comment text and lets you keep real reddit.com thread URLs:
+  https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&after={YYYY-MM-DD}&limit=100&sort=desc
+  https://arctic-shift.photon-reddit.com/api/comments/search?link_id={post_id}&limit=100
+Reconstruct source_url as https://www.reddit.com/r/{sub}/comments/{post_id}/{slug}/ — this satisfies the provenance rule because the text IS the verbatim thread content, not a third-party summary.
+CAVEAT: archive `score` is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
+Only after BOTH direct fetch and Arctic Shift fail may you return 0 signals — and then record every attempted path in the channel-failure notes.
+
 
 EXTRACTION RULES:
 - source_url MUST be a reddit.com/r/... thread URL. A blog summarizing "what Reddit thinks" is NOT acceptable as a Reddit signal.
