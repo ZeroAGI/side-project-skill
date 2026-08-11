@@ -236,7 +236,7 @@ old.reddit.com/www.reddit.com are frequently unreachable from this environment (
   https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&after={YYYY-MM-DD}&limit=100&sort=desc
   https://arctic-shift.photon-reddit.com/api/comments/search?link_id={post_id}&limit=100
 Reconstruct source_url as https://www.reddit.com/r/{sub}/comments/{post_id}/{slug}/ — this satisfies the provenance rule because the text IS the verbatim thread content, not a third-party summary.
-CAVEAT: archive `score` is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
+CAVEAT: archive "score" is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
 Only after BOTH direct fetch and Arctic Shift fail may you return 0 signals — and then record every attempted path in the channel-failure notes.
 
 
@@ -268,7 +268,7 @@ old.reddit.com/www.reddit.com are frequently unreachable from this environment (
   https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&after={YYYY-MM-DD}&limit=100&sort=desc
   https://arctic-shift.photon-reddit.com/api/comments/search?link_id={post_id}&limit=100
 Reconstruct source_url as https://www.reddit.com/r/{sub}/comments/{post_id}/{slug}/ — this satisfies the provenance rule because the text IS the verbatim thread content, not a third-party summary.
-CAVEAT: archive `score` is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
+CAVEAT: archive "score" is a snapshot at crawl time; posts from the last 1-2 days are under-counted, so rank primarily on posts older than 2 days.
 Only after BOTH direct fetch and Arctic Shift fail may you return 0 signals — and then record every attempted path in the channel-failure notes.
 
 

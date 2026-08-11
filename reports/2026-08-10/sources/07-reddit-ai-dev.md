@@ -1,6 +1,6 @@
 # 07 — Reddit AI/开发者痛点 2026-08-10
 
-> 组内信号：14 条 | 二手转述：0 条（0%）
+> 组内信号：17 条 | 二手转述：0 条（0%）
 > 最强证据线：Agent 记忆产品被"纯 markdown wiki"击败（2176 任务基准）+ 两起真实 prompt injection 未遂事件（网站投毒 payload 要求擦除工作目录 / 邮件隐藏指令险些外发银行流水）+ 三平台同步的计费/限额愤怒（Claude 静默切 API 计费、Cursor 缓存读 12.5x 加价、Cursor plan mode 挂机吞光月度额度）。
 > 渠道故障：old.reddit.com 与 www.reddit.com 均被 harness 域名拒绝（直接 WebFetch 失败）。按预案改用 Arctic Shift 学术归档 API（arctic-shift.photon-reddit.com），取回帖子正文与评论全文，source_url 重建为真实 reddit.com 线程链接，内容为逐字线程原文，故 secondhand=false。注意：归档分数为抓取时快照，最近 1-2 天帖子的分数被低估，排序以 2 天前的帖子为主。r/ChatGPTPro 归档覆盖较薄（周内仅 55 帖）。
 
@@ -189,3 +189,42 @@
   - [评论 11 赞] "I just figured out today that Deepseek was on the free tier for Opencode Zen... I went over several M tokens in mere hours. I'll hate to go back to my 20-25 t/s local Qwen 3.6 27b setup."
   - [评论 6 赞] "Most people dont have money to 10 rtx 6000 pros or 8 dgx sparks or even 768 gb of ddr4 ram + rtx 5000 pro"
 - **ai_opportunity**: "云 vs 本地"动态回本计算器：输入工作负载（token/天、模型档位），实时接入各家 API 价与硬件行情（RAM/GPU 现货价波动剧烈），输出 breakeven 时点与混合路由建议。
+
+## 15. 印地-英语混说语音 Agent 实战翻车录：电话线路、数字读回、语码切换全线崩
+- **type**: pain_point | **platform**: reddit (r/AI_Agents) | **secondhand**: false
+- **source_url**: https://www.reddit.com/r/AI_Agents/comments/1vhxi84/shipped_a_hindienglish_voice_agent_for_a_fintech/
+- **source_date**: 2026-08-07 | **fetched_at**: 2026-08-10
+- **metrics**: 31 赞、26 评论；一条 TTS 从业者长评自曝发音词典方案"花了一个月且 A/B 后更差"
+- **description**: 金融科技语音 agent（还款提醒/KYC 跟进）半年实战复盘：市面方案全部美国中心，印度语言场景（真实 Hindi-English 混说，非标准语）资料近乎为零。评论区补充：电话供应商 Vobiz 流断连/随机掉线/失真是最大不可控项；多语言 code-switching 无人能全覆盖，团队普遍靠"置信度低就请用户换 Hindi 或英语重说"兜底；语码切换轮次在真实流量中占主导却很少被评测覆盖。
+- **user_quote**: "when I started building this six months ago there was almost nothing useful online about Indian-language voice agents specifically. Everything was US-centric."
+- **top_comments**:
+  - [评论, telephony] "Constantly every few calls the stream would fail to connect. The caller is left saying 'hello', 'hello' but nothing is heard on the other end... Calls drop randomly in the middle of a call."
+  - [评论, TTS 从业者] "We assumed the answer was a pronunciation dictionary, so we built one properly... Then we A/B tested it with ASR scoring the output instead of trusting our ears. The dictionary made it worse."
+  - [评论] "yeah we mostly optimize for hindi-english and accept the punjabi/gujarati sprinkle wont be perfect... if someone has cracked it pls tell me"
+- **ai_opportunity**: 非英语市场（印度先行）语音 agent 的评测/可观测层：按语码切换轮次打分的转写评测、电话链路质量监控、数字读回专项测试集——从业者自述"没有现成工具"的空白。
+
+## 16. Anthropic 官方文档承认 Opus 5 冗长/滥生 subagent 是出厂行为，用户被迫自写 CLAUDE.md 修补
+- **type**: pain_point | **platform**: reddit (r/ClaudeAI) | **secondhand**: false
+- **source_url**: https://www.reddit.com/r/ClaudeAI/comments/1vd57c0/claudemd_for_opus_5_based_on_anthropics_official/
+- **source_date**: 2026-08-02 | **fetched_at**: 2026-08-10
+- **metrics**: 455 赞、63 评论
+- **description**: 用户细读官方 prompting 文档发现：Opus 5 的"严重过度验证循环"、"可怕的 subagent 大军"、显著更冗长，均被 Anthropic 官方描述为默认行为并给出 prompt 级规避法（旧的"最后跑一次检查/派 subagent 复查"指令反而触发烧 token 的验证循环）。他据此做了 <50 行 CLAUDE.md 修补包开源。社区反应分裂：感谢派 vs 质问"为什么让用户修厂商缺陷"派；另有多模型混用者指出旧模型仍需要 legacy 指令，两套指令互斥无解。
+- **user_quote**: "Apparently Opus 5 was also shipped with the tendency to spawn a horrible army of subagents because it likes to delegate tasks... a lot of complaints people have about Opus 5 behavior are clearly described by Anthropic as baked in."
+- **top_comments**:
+  - [评论 24 赞] "Why would they recommend a Claude.md to fix an inherent flaw with their model? Why don't they just fix the verbosity issue with their models. People defend this shit?"
+  - [评论 32 赞] "Anthropic ships a whole host of products, of which 8/9 needs the 'legacy' instructions... aren't you literally gimping every other model you use except this one?"
+  - [评论 9 赞] "I spend most of my day doing code reviews on top of coding. Opus 5's tsunami of pedantic drivel is the absolutely bane of my existence."
+- **ai_opportunity**: 按模型版本自动加载对应行为修正集的"prompt 配置管理器"（检测当前模型→切换指令集，解决多模型 legacy/new 指令互斥）；现在用户手工维护 CLAUDE.md 且一换模型就失效。与 #4/#5 构成 Opus 5 行为回退三联证据。
+
+## 17. Claude Code 会话中途混出 Kimi K2 模型卡内容：付费用户无法验证"我用的到底是哪个模型"
+- **type**: pain_point | **platform**: reddit (r/ClaudeAI) | **secondhand**: false
+- **source_url**: https://www.reddit.com/r/ClaudeAI/comments/1vdbtzy/claude_code_just_randomly_spat_out_kimi_k2/
+- **source_date**: 2026-08-02 | **fetched_at**: 2026-08-10
+- **metrics**: 452 赞、103 评论；评论区激烈对立（64 赞信 vs 26 赞质疑截图剪裁）
+- **description**: 用户称 Sonnet 5 会话第 5-7 轮突然输出 Kimi K2 Thinking 模型卡描述，自述从未接过第三方 provider。评论区真伪存疑（高赞反驳"只是输出内容里谈到了 K2"、"手术式剪裁截图，惯常骗赞"），但帖子热度本身说明"我付费的模型真的是我在用的模型吗"已是真实信任焦虑，且用户没有任何客户端验证手段。采信时注意：证据链未闭合，痛点信号取"验证手段缺失"而非"路由事故属实"。
+- **user_quote**: "out of nowhere the response came back with Kimi K2 Thinking model card description mixed in... I was using the Sonnet 5 model. Never connected any other provider — I've only ever used Claude Code."
+- **top_comments**:
+  - [评论 64 赞] "These are the people that are building production software... and they can't tell what's thinking versus what's context"
+  - [评论 26 赞] "It's just talking about K2 in its output. Whatever you are talking about involves K2."
+  - [评论 22 赞] "They're also SURGICALLY cut screenshots. Always karma farming."
+- **ai_opportunity**: 模型身份/降级审计工具（客户端对响应做模型归属检测、订阅期"实际服务模型"面板）；与 08-04~08-06 报告"Agent 动作真实性核验"主线同构，扩展到模型供给侧。
