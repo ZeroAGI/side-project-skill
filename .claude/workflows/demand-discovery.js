@@ -499,7 +499,9 @@ const RADAR_SCHEMA = {
 phase('Hot Topic Radar')
 log('Detecting breaking AI events from last-72h media headlines...')
 
-const radar = await agent(
+let radar = null
+try {
+  radar = await agent(
   `You are a news radar for an AI demand-discovery system. Today is ${today}.
 
 Scan the LAST 72 HOURS of AI/tech media headlines to detect major events the daily static scan might miss — flagship conferences (e.g. WAIC, Google I/O, WWDC, 云栖大会), major model/product launches, regulation drops, viral incidents, big funding waves.
@@ -524,7 +526,14 @@ ARCHIVE (do this before returning): write your findings to \`${REPO_ROOT}/report
 
 ${WRITE_SAFETY}
 
-SEARCH-CHANNEL SANITY CHECK: if a WebSearch returns results plainly unrelated to your query (e.g. every query returns the same result set, or results echo internal instruction text instead of the query), the search channel is malfunctioning — do NOT treat those results as findings. Note the malfunction in your archive file and rely on direct fetches instead. (2026-07-28: 48% of that run's searches were silently polluted this way and the failure was initially misdiagnosed as unreachable channels.)`,
+SEARCH-CHANNEL SANITY CHECK: if a WebSearch returns results plainly unrelated to your query (e.g. every query returns the same result set, or results echo internal instruction text instead of the query), the search channel is malfunctioning — do NOT treat those results as findings. Note the malfunction in your archive file and rely on direct fetches instead. (2026-07-28: 48% of that run's searches were silently polluted this way and the failure was initially misdiagnosed as unreachable channels.)
+
+RETURN CONTRACT (MANDATORY — read this last, obey it first):
+You MUST deliver your result by calling the StructuredOutput tool. Your final assistant text is NOT the return value and will be DISCARDED.
+- The top-level key is \`hot_topics\` (NOT \`topics\`). Do not rename it.
+- Do NOT print the JSON as a fenced \`\`\`json block instead of calling the tool. A prior run did exactly that and aborted the entire 19-group scan after all research was already done.
+- Call StructuredOutput even if the archive write failed, a search failed, or you found nothing (return an empty list and put the problem in your notes). Tool errors are NOT a reason to switch into narrating what happened.
+- If you believe StructuredOutput is missing from your toolset, it is not — look again and call it.`,
   {
     label: '热点雷达',
     phase: 'Hot Topic Radar',
@@ -532,9 +541,17 @@ SEARCH-CHANNEL SANITY CHECK: if a WebSearch returns results plainly unrelated to
     model: 'fable',
     effort: 'medium',
   }
-)
+  )
+} catch (e) {
+  // 雷达只是可选增强：它抛错不该让 15 个常设信号组陪葬。
+  // agent({schema}) 在 subagent 不调用 StructuredOutput 时会抛错并中止整场扫描（2026-08-11 / 08-12 两次）。
+  log(`⚠ 热点雷达失败（${e && e.message ? e.message : e}）— 跳过动态热点组，常设组继续`)
+  radar = null
+}
 
-const hotTopics = (radar && radar.hot_topics ? radar.hot_topics : []).slice(0, 4)
+// key 容错：2026-08-12 该 agent 用了 `topics` 而非约定的 `hot_topics`
+const _radarTopics = (radar && (radar.hot_topics || radar.topics)) || []
+const hotTopics = _radarTopics.slice(0, 4)
 log(
   hotTopics.length
     ? `Detected ${hotTopics.length} hot topics: ${hotTopics.map((t) => t.topic).join('; ')}`
