@@ -5,7 +5,7 @@ export const meta = {
   phases: [
     { title: 'Hot Topic Radar', detail: 'Detect breaking events from last-72h media and derive dynamic search queries' },
     { title: 'Signal Collection', detail: '15 static groups + dynamic hot-topic groups, run 6 at a time with 3 attempts each (2026-07-27 timeout fix)' },
-    { title: 'Cross-Analysis', detail: 'Identify cross-validated patterns and score opportunities' },
+    { title: 'Cross-Analysis', detail: '4 sharded analyses (~1/4 signals each) + merge pass — sharded 2026-08-19 after 6 upstream stream truncations on the single-agent version' },
     { title: 'Report Writing', detail: 'Write daily report and update opportunity tracker' },
   ],
 }
@@ -803,38 +803,32 @@ const cut = (s, n) => {
   return v.length > n ? v.slice(0, n) + '…' : v
 }
 
-const signalSummary = validSignals
-  .map((s) => {
-    const lines = s.signals.map((sig) => {
-      let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + cut(sig.title, 110) + ': ' + cut(sig.description, 200)
-      if (sig.user_quote) line += ' — "' + cut(sig.user_quote, 140) + '"'
-      if (sig.source_url) line += ' (' + sig.source_url + ')'
-      return line
+const summarizeGroups = (groups) =>
+  groups
+    .map((s) => {
+      const lines = s.signals.map((sig) => {
+        let line = '- [' + sig.signal_type + (sig.secondhand ? '|二手转述' : '') + '] ' + cut(sig.title, 110) + ': ' + cut(sig.description, 200)
+        if (sig.user_quote) line += ' — "' + cut(sig.user_quote, 140) + '"'
+        if (sig.source_url) line += ' (' + sig.source_url + ')'
+        return line
+      })
+      return '## ' + s.group + '\n' + lines.join('\n')
     })
-    return '## ' + s.group + '\n' + lines.join('\n')
-  })
-  .join('\n\n')
+    .join('\n\n')
 
-// 单点失败同样会报废整场扫描（2026-07-31：分析 agent 6 次停滞 → 无报告），故加 3 次重试。
-let analysis = null
-for (let anaAttempt = 1; anaAttempt <= 3 && !analysis; anaAttempt++) {
-analysis = await agent(
-  `You are a startup opportunity analyst. Analyze these signals from today's demand discovery scan (${today}).
-${hotTopics.length ? `\nBreaking events auto-detected this run (their deep-dive signals are included below — weigh them as fresh, high-salience context): ${hotTopics.map((t) => t.topic).join('; ')}\n` : ''}
-## ALL SIGNALS COLLECTED TODAY
+// 2026-08-19 事故：单 agent 交叉分析（77K prompt / 184 条信号）连续 6 次被上游流截断
+// （"upstream stream ended without a terminal frame"，收到 19–353 帧后 eof；跨两次运行、
+// 时间跨度 1.5h，截断位置随机 → 排除偶发，判为大请求在网关侧不稳定）。注意与 07-31 的
+// 停滞（agent 交回空 StructuredOutput{}）不同：那次是模型侧写不完，这次是传输被砍断，
+// 靠缩短 prompt 已不够，必须同时压低单次响应体积 → 改为分片：
+// 4 个分片各吃 ~1/4 信号（prompt ~20K）产出各自 Top 5，再由汇总 agent 在小输入上合并 Top 10。
+// 分片失败不报废整场，但覆盖损失显式记账；汇总失败则退回本地确定性合并，保证报告必定产出。
+const SHARD_COUNT = 4
+const shards = []
+for (let i = 0; i < SHARD_COUNT; i++) shards.push([])
+validSignals.forEach((g, i) => shards[i % SHARD_COUNT].push(g))
 
-${signalSummary}
-
-## YOUR TASK
-
-1. **Cross-validate**: Find needs that appear in ≥2 channels → high-value signal
-2. **Identify supply-demand gaps**: Lots of complaints but no good solution → blue ocean
-3. **Check technology timing**: New AI capability + old pain point → timing is right
-4. **Payment validation**: Already monetized on Upwork/Kickstarter/Gumroad → confirmed willingness to pay
-5. **China arbitrage**: Product exists overseas but blank in China → localization opportunity
-6. **Open-source signal**: GitHub trending tool without commercial version → productization opportunity
-
-## SCORING FRAMEWORK (1-5 each)
+const SCORING_RUBRIC = `## SCORING FRAMEWORK (1-5 each)
 - pain_score: How painful? How frequent?
 - market_score: Potential users × likely customer value
 - competition_score: 1=crowded 5=no competition
@@ -843,25 +837,117 @@ ${signalSummary}
 - defensibility: How hard to copy?
 - composite_score: Overall 1-5 weighted score
 
-Return the TOP 10 opportunities sorted by composite_score, plus cross-validated signals and meta-insights.
-For each opportunity: name, one_liner, target_user, all 6 dimension scores, composite_score, cross_validation description, source URLs, is_new (true if not seen before).
+EVIDENCE WEIGHTING: Signals tagged [二手转述] are secondhand (SEO aggregators / blog paraphrases) — their numbers are unverified. An opportunity whose KEY evidence is entirely secondhand must be scored more conservatively (cap pain/market scores at 4) and its cross_validation must say so explicitly. Cross-validation only counts as independent when the underlying primary sources differ — three blogs paraphrasing the same survey is ONE source, not three.`
 
-EVIDENCE WEIGHTING: Signals tagged [二手转述] are secondhand (SEO aggregators / blog paraphrases) — their numbers are unverified. An opportunity whose KEY evidence is entirely secondhand must be scored more conservatively (cap pain/market scores at 4) and its cross_validation must say so explicitly. Cross-validation only counts as independent when the underlying primary sources differ — three blogs paraphrasing the same survey is ONE source, not three.`,
-  {
-    label: anaAttempt > 1 ? `Cross-Analysis (retry ${anaAttempt})` : 'Cross-Analysis',
-    phase: 'Cross-Analysis',
-    schema: ANALYSIS_SCHEMA,
-    effort: anaAttempt > 1 ? 'medium' : 'high',
+const analysisAttempt = async (label, prompt, effortHigh) => {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const r = await agent(prompt, {
+      label: attempt > 1 ? `${label} (retry ${attempt})` : label,
+      phase: 'Cross-Analysis',
+      schema: ANALYSIS_SCHEMA,
+      effort: attempt > 1 ? 'medium' : effortHigh,
+    }).catch((e) => {
+      log(`⚠ ${label} attempt ${attempt}/3 failed (${String((e && e.message) || e).slice(0, 140)})`)
+      return null
+    })
+    if (r && r.opportunities) return r
   }
-).catch((e) => {
-  log(`⚠ Cross-Analysis attempt ${anaAttempt}/3 failed (${String((e && e.message) || e).slice(0, 140)})`)
   return null
-})
-  if (!analysis && anaAttempt < 3) log('↻ retrying Cross-Analysis at lower effort')
 }
+
+const hotTopicLine = hotTopics.length
+  ? `\nBreaking events auto-detected this run (weigh their signals as fresh, high-salience context): ${hotTopics.map((t) => t.topic).join('; ')}\n`
+  : ''
+
+const shardResults = await parallel(
+  shards.map((groups, i) => () =>
+    analysisAttempt(
+      `Cross-Analysis shard ${i + 1}/${SHARD_COUNT}`,
+      `You are a startup opportunity analyst. Analyze this SHARD (${i + 1} of ${SHARD_COUNT}) of signals from today's demand discovery scan (${today}). Other shards cover the remaining channels — judge only what is in front of you, but note when a need looks like it would also show up elsewhere.
+${hotTopicLine}
+## SIGNALS IN THIS SHARD
+
+${summarizeGroups(groups)}
+
+## YOUR TASK
+
+1. **Cross-validate**: Find needs appearing in ≥2 channels within this shard → high-value signal
+2. **Identify supply-demand gaps**: Lots of complaints but no good solution → blue ocean
+3. **Check technology timing**: New AI capability + old pain point → timing is right
+4. **Payment validation**: Already monetized on Upwork/Kickstarter/Gumroad → confirmed willingness to pay
+5. **China arbitrage**: Product exists overseas but blank in China → localization opportunity
+6. **Open-source signal**: GitHub trending tool without commercial version → productization opportunity
+
+${SCORING_RUBRIC}
+
+Return the TOP 5 opportunities from THIS SHARD sorted by composite_score, plus cross-validated signals and meta-insights observed here.
+For each opportunity: name, one_liner, target_user, all 6 dimension scores, composite_score, cross_validation description, source URLs, is_new.
+Keep each field tight — one_liner ≤ 40 words, cross_validation ≤ 60 words. Brevity matters: an overlong response gets truncated in transit and is lost entirely.`,
+      'high'
+    )
+  )
+)
+
+const okShards = shardResults.filter((r) => r && r.opportunities && r.opportunities.length)
+const lostShards = SHARD_COUNT - okShards.length
+if (lostShards > 0) {
+  log(`⚠ ${lostShards}/${SHARD_COUNT} 分片失败 — 本次机会排序仅覆盖 ${okShards.length}/${SHARD_COUNT} 信号分片，报告须标注覆盖损失`)
+}
+if (!okShards.length) {
+  log('🔴 全部分片失败 — signals are archived in sources/, aborting before report')
+  throw new Error('Cross-Analysis failed on all shards; archives intact under reports/' + today + '/sources/')
+}
+
+const pooled = okShards.flatMap((r) => r.opportunities)
+const pooledCrossSignals = okShards.flatMap((r) => r.cross_signals || [])
+const pooledMetaInsights = okShards.flatMap((r) => r.meta_insights || [])
+log(`分片分析完成：${okShards.length}/${SHARD_COUNT} 成功，候选机会 ${pooled.length} 个 → 汇总排序`)
+
+let analysis = await analysisAttempt(
+  'Cross-Analysis merge',
+  `You are a startup opportunity analyst. ${okShards.length} parallel shards each analyzed a slice of today's demand discovery scan (${today}) and returned their top candidates. Consolidate them into one final ranking.
+${hotTopicLine}
+## SHARD CANDIDATES (JSON)
+
+${JSON.stringify(pooled)}
+
+## CROSS-SIGNALS OBSERVED BY SHARDS
+
+${pooledCrossSignals.map((s) => '- ' + cut(s, 220)).join('\n') || '(none)'}
+
+## META-INSIGHTS OBSERVED BY SHARDS
+
+${pooledMetaInsights.map((s) => '- ' + cut(s, 220)).join('\n') || '(none)'}
+
+## YOUR TASK
+
+1. **Merge duplicates**: the same underlying need may appear from several shards under different names — merge them into one opportunity, and say so in cross_validation (a need surfacing in multiple shards = multi-channel validation = score it UP).
+2. **Re-rank globally**: shard scores were assigned without seeing other shards. Re-score for consistency across the whole pool.
+3. **Consolidate** cross_signals and meta_insights, dropping near-duplicates.
+
+${SCORING_RUBRIC}
+
+Return the TOP 10 opportunities sorted by composite_score, plus consolidated cross_signals and meta_insights.
+Keep each field tight — one_liner ≤ 40 words, cross_validation ≤ 60 words. Brevity matters: an overlong response gets truncated in transit and is lost entirely.`,
+  'high'
+)
+
 if (!analysis) {
-  log('🔴 Cross-Analysis failed 3× — signals are archived in sources/, aborting before report')
-  throw new Error('Cross-Analysis failed after 3 attempts; archives intact under reports/' + today + '/sources/')
+  // 汇总 agent 也被截断时不再报废整场：按分片得分本地确定性合并（不去重、不重排），
+  // 保证报告产出，并在日志与报告里显式声明这是降级结果。
+  log('⚠ 汇总 agent 3 次失败 — 退回本地确定性合并（按 composite_score 取前 10，未做跨分片去重/重排）')
+  analysis = {
+    opportunities: pooled.slice().sort((a, b) => (b.composite_score || 0) - (a.composite_score || 0)).slice(0, 10),
+    cross_signals: pooledCrossSignals,
+    meta_insights: pooledMetaInsights.concat([
+      '⚠ 本次交叉分析的汇总阶段失败，Top 10 由各分片得分本地合并而成，未经跨分片去重与统一重排——同一需求可能以不同名称重复出现，得分在分片间不可直接比较。',
+    ]),
+  }
+}
+if (lostShards > 0) {
+  analysis.meta_insights = (analysis.meta_insights || []).concat([
+    `⚠ 覆盖损失：${lostShards}/${SHARD_COUNT} 个信号分片在交叉分析阶段失败，本次机会排序未覆盖这部分渠道的信号（原始信号仍完整存于 sources/）。`,
+  ])
 }
 
 log(`Identified ${analysis.opportunities.length} opportunities`)
